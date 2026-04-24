@@ -1884,20 +1884,20 @@ function buildPrintHTML() {
       </thead>
       <tbody>`;
 
-    // Separem guards disponibles (no absents) dels que tenen guàrdia però estan absents
-    const guardiesAbsents = guardiesFranja.filter(g =>
-      estaAbsent(g, valids) &&
-      !absenciesFranja.some(a => nomsCoincideixen(a._nom, g))
-    );
+    // Tots els professors del cuadrant d'aquesta franja apareixen SEMPRE.
+    // Si estan absents → "(no fa guàrdia)". Si no → apareixen normal.
+    const guardiesAbsents    = guardiesFranja.filter(g => estaAbsent(g, valids));
     const guardiesDisponibles = guardiesFranja.filter(g => !estaAbsent(g, valids));
 
-    // Calculem el nombre màxim de files: el major entre absències a cobrir i guards disponibles
-    const numFiles = Math.max(absenciesFranja.length, guardiesDisponibles.length);
+    // Columna esquerra: absències a cobrir
+    // Columna dreta:   TOTS els guards del cuadrant (disponibles normal, absents amb "(no fa guàrdia)")
+    const numFiles = Math.max(absenciesFranja.length, guardiesFranja.length);
 
     for (let i = 0; i < numFiles; i++) {
-      const abs = absenciesFranja[i] || null;
-      const guardia = guardiesDisponibles[i] || null;
+      const abs     = absenciesFranja[i] || null;
+      const guardia = guardiesFranja[i]  || null;
 
+      // Columna esquerra (absent)
       let nomAbsent = '', grup = '', aula = '', tasques = '';
       if (abs) {
         nomAbsent = nomCurt(abs._nom);
@@ -1915,7 +1915,17 @@ function buildPrintHTML() {
         tasques = tascaResult.text || '';
       }
 
-      const guardiaCell = guardia ? escapeHtml(nomCurt(guardia)) : '';
+      // Columna dreta (guàrdia): sempre apareix, absent o no
+      let guardiaCell = '';
+      if (guardia) {
+        const estaAbsentGuardia = estaAbsent(guardia, valids);
+        if (estaAbsentGuardia) {
+          guardiaCell = `${escapeHtml(nomCurt(guardia))} <span style="font-weight:normal;font-style:italic;">(no fa guàrdia)</span>`;
+        } else {
+          guardiaCell = escapeHtml(nomCurt(guardia));
+        }
+      }
+
       html += `<tr>
         <td class="absent-cell">${escapeHtml(nomAbsent)}</td>
         <td class="group-cell">${escapeHtml(grup)}</td>
@@ -1925,30 +1935,6 @@ function buildPrintHTML() {
         <td class="signature-cell"></td>
       </tr>`;
     }
-
-    // Professors de guàrdia absents: apareixen com a absent normal
-    // però a la columna de guàrdia surt el seu nom + "(no fa guàrdia)"
-    guardiesAbsents.forEach(g => {
-      const absGuard = estaAbsent(g, valids);
-      const classeGuard = absGuard ? trobarClasse(horariSessions, g, s.franja) : null;
-      let grupG = '', aulaG = '', tasquesG = '';
-      if (classeGuard && (classeGuard.tipus === 'LECTIVA' || classeGuard.tipus === 'TUTORIA_GRUP')) {
-        grupG = classeGuard.grup || '';
-        aulaG = classeGuard.aula || '';
-      }
-      if (absGuard) {
-        const tascaG = obtenirTasca(absGuard, s.franja);
-        tasquesG = tascaG.text || '';
-      }
-      html += `<tr>
-        <td class="absent-cell">${escapeHtml(nomCurt(g))}</td>
-        <td class="group-cell">${escapeHtml(grupG)}</td>
-        <td class="room-cell">${escapeHtml(aulaG)}</td>
-        <td class="tasks-cell">${escapeHtml(tasquesG)}</td>
-        <td class="guard-cell">${escapeHtml(nomCurt(g))} <span style="font-weight:normal;font-style:italic;">(no fa guàrdia)</span></td>
-        <td class="signature-cell"></td>
-      </tr>`;
-    });
 
     html += `</tbody></table></div>`;
   });
