@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<title>Guàrdies — IES Josep Miquel Guàrdia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --text: #1f2937;
+    --text-soft: #6b7280;
+    --text-muted: #9ca3af;
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: #e5e7eb;
+    --border-light: #f3f4f6;
+    --accent: #2563eb;
+    --accent-soft: #eff6ff;
+    --warn: #d97706;
+    --warn-soft: #fffbeb;
+    --error: #dc2626;
+    --error-soft: #fef2f2;
+    --success: #059669;
+    --success-soft: #ecfdf5;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  header { margin-bottom: 32px; }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    color: var(--text-soft);
+    font-size: 14px;
+  }
+
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-soft);
+    margin-bottom: 4px;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    background: var(--surface);
+  }
+
+  .field input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .field input[type="password"] {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 13px;
+  }
+
+  .help-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar input[type="date"] {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    background: var(--surface);
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn:hover:not(:disabled) {
+    background: var(--bg);
+    border-color: var(--text-soft);
+  }
+
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+  }
+
+  .results-meta {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin-bottom: 16px;
+  }
+
+  .results-meta strong { color: var(--text); font-weight: 600; }
+
+  .franja-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .franja-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    background: var(--border-light);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .franja-time {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .franja-status {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .franja-status.has-absences {
+    color: var(--warn);
+    font-weight: 500;
+  }
+
+  .franja-content {
+    padding: 12px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .franja-content h4 {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .absents-list, .guards-list { list-style: none; }
+
+  .absent-entry {
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border-light);
+    font-size: 14px;
+  }
+
+  .absent-entry:last-child { border-bottom: none; }
+
+  .absent-name-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .absent-name {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .absent-cause {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--border-light);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  .classe-info {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-soft);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .classe-info .grup {
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .classe-info .aula {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .classe-info .materia {
+    font-style: italic;
+    color: var(--text-soft);
+  }
+
+  .classe-info .tipus-tutoria {
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+
+  .absent-senshorari {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 4px;
+  }
+
+  .absent-obs {
+    font-size: 12px;
+    color: var(--text-soft);
+    margin-top: 4px;
+    font-style: italic;
+    padding-left: 8px;
+    border-left: 2px solid var(--border);
+  }
+
+  .guard-entry {
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border-light);
+    font-size: 14px;
+    color: var(--text);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .guard-entry:last-child { border-bottom: none; }
+
+  .guard-entry.absent-guard {
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+
+  .guard-entry .absent-tag {
+    font-size: 11px;
+    color: var(--error);
+    background: var(--error-soft);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .empty-column {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 6px 0;
+  }
+
+  .franja-sense-absencies .franja-content {
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: block;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-soft);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .empty-state-icon { font-size: 32px; opacity: 0.3; margin-bottom: 8px; }
+
+  .loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-soft);
+  }
+
+  .alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .alert-error {
+    background: var(--error-soft);
+    color: var(--error);
+    border: 1px solid #fecaca;
+  }
+
+  .warnings-section { margin-top: 24px; }
+
+  .warnings-section h3 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 10px;
+  }
+
+  .warnings-section.errors h3 { color: var(--warn); }
+  .warnings-section.ignored h3 { color: var(--success); }
+
+  .warning-item {
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .warning-item.error {
+    background: var(--warn-soft);
+    border: 1px solid #fde68a;
+  }
+
+  .warning-item.ignored {
+    background: var(--success-soft);
+    border: 1px solid #a7f3d0;
+  }
+
+  .warning-item strong { font-weight: 600; }
+
+  .warning-item .reason.error { color: var(--warn); margin-top: 2px; }
+  .warning-item .reason.ignored { color: var(--success); margin-top: 2px; font-style: italic; }
+
+  details {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 24px;
+  }
+
+  details summary {
+    padding: 14px 18px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-soft);
+    user-select: none;
+  }
+
+  details summary:hover { color: var(--text); }
+
+  details[open] summary {
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text);
+  }
+
+  details .details-content { padding: 18px; }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--border-light);
+    color: var(--text-soft);
+    margin-left: 6px;
+  }
+
+  .badge-ok { background: #d1fae5; color: #065f46; }
+  .badge-warn { background: #fef3c7; color: #92400e; }
+
+  .classe-fora {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+
+  .classe-fora .grup-fora {
+    text-decoration: line-through;
+    font-weight: 500;
+  }
+
+  .classe-fora .tag-fora {
+    font-size: 11px;
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .sortida-banner {
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #3730a3;
+  }
+
+  .sortida-banner strong { font-weight: 600; }
+
+  @media (max-width: 640px) {
+    .franja-content { grid-template-columns: 1fr; }
+  }
+
+  /* ============================================================
+     NOU DISSENY DE TARGETES DE GUÀRDIA + EDITOR
+     ============================================================ */
+  .guardia-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .guardia-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .guardia-card.removed {
+    opacity: 0.45;
+    background: #f9fafb;
+  }
+
+  .guardia-card.removed .guardia-card-title,
+  .guardia-card.removed .guardia-card-meta,
+  .guardia-card.removed .guardia-card-tasca {
+    text-decoration: line-through;
+  }
+
+  .guardia-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .guardia-card-title {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .guardia-card-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .guardia-card-btn {
+    width: 26px;
+    height: 26px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .guardia-card-btn:hover {
+    background: var(--border-light);
+    color: var(--text);
+  }
+
+  .guardia-card-btn.remove:hover {
+    background: var(--error-soft);
+    color: var(--error);
+  }
+
+  .guardia-card-btn.restore {
+    color: var(--success);
+  }
+
+  .guardia-card-btn.restore:hover {
+    background: var(--success-soft);
+  }
+
+  .guardia-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    font-size: 13px;
+    color: var(--text-soft);
+    margin-bottom: 4px;
+  }
+
+  .guardia-card-meta .grup {
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .guardia-card-meta .aula {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .guardia-card-meta .materia {
+    font-style: italic;
+  }
+
+  .guardia-card-meta .cause {
+    background: var(--border-light);
+    color: var(--text-muted);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+
+  .guardia-card-tasca {
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: #fffaeb;
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+    font-size: 13px;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  .guardia-card-tasca strong {
+    color: var(--warn);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .guardia-card-tasca.empty {
+    background: var(--border-light);
+    border-left-color: var(--text-muted);
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .guardia-card-tasca.empty strong {
+    color: var(--text-muted);
+  }
+
+  .guardia-card-tasca.edited {
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .guardia-card-tasca.edited strong {
+    color: var(--accent);
+  }
+
+  /* Nota interna (camp Observacions del Sheet) - subtle */
+  .nota-interna {
+    margin-top: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: transparent;
+    border-top: 1px dashed var(--border);
+    line-height: 1.4;
+  }
+
+  .nota-interna strong {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-right: 6px;
+    font-size: 10px;
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+
+  .modal-backdrop.active {
+    display: flex;
+  }
+
+  .modal-box {
+    background: white;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .modal-header .modal-subtitle {
+    font-size: 13px;
+    color: var(--text-soft);
+  }
+
+  .modal-body {
+    padding: 16px 20px;
+  }
+
+  .modal-body label {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .modal-body textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+  }
+
+  .modal-body textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  /* ============================================================
+     PLANTILLA IMPRIMIBLE — DIN A3 HORITZONTAL
+     ============================================================ */
+  #printArea {
+    display: none;
+  }
+
+  @media print {
+    @page {
+      size: A3 landscape;
+      margin: 8mm;
+    }
+
+    body > *:not(#printArea) { display: none !important; }
+    #printArea {
+      display: block !important;
+      font-family: Arial, Helvetica, sans-serif;
+      color: black;
+      font-size: 11px;
+    }
+  }
+
+  /* Vista prèvia en pantalla del PDF */
+  .preview-mode #printArea {
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+    color: black;
+    background: white;
+    padding: 20mm 15mm;
+    max-width: 1400px;
+    margin: 20px auto;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+    font-size: 11px;
+  }
+
+  .preview-mode .container { display: none; }
+
+  .preview-mode .preview-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: var(--text);
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    z-index: 1000;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+  }
+
+  .preview-bar { display: none; }
+  .preview-mode .preview-bar { display: flex; }
+
+  .preview-bar .spacer { flex: 1; }
+
+  .preview-bar button {
+    background: white;
+    color: var(--text);
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .preview-bar button.primary {
+    background: var(--accent);
+    color: white;
+  }
+
+  /* Estructura de la plantilla impresa */
+  #printArea .doc-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid black;
+    letter-spacing: 1px;
+  }
+
+  #printArea .session-block {
+    margin-bottom: 6px;
+  }
+
+  #printArea .session-label {
+    background: #333;
+    color: white;
+    padding: 4px 10px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+    font-size: 11px;
+  }
+
+  #printArea table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  #printArea table th,
+  #printArea table td {
+    border: 1px solid black;
+    padding: 4px 6px;
+    vertical-align: middle;
+    font-size: 11px;
+    overflow: hidden;
+  }
+
+  #printArea table thead th {
+    background: #d9d9d9;
+    text-transform: uppercase;
+    font-size: 10px;
+    text-align: center;
+    padding: 5px 4px;
+  }
+
+  #printArea td.absent-cell { font-weight: bold; }
+  #printArea td.group-cell, #printArea td.room-cell {
+    font-family: 'Courier New', monospace;
+    text-align: center;
+  }
+  #printArea td.tasks-cell {
+    font-style: italic;
+    font-size: 10px;
+  }
+  #printArea td.guard-cell { font-weight: bold; }
+  #printArea td.signature-cell { width: 80px; }
+
+  #printArea .footer-sections {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+
+  #printArea .footer-box {
+    border: 1px solid black;
+    padding: 6px 8px;
+    min-height: 40px;
+  }
+
+  #printArea .footer-box-title {
+    font-weight: bold;
+    font-size: 10px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  /* Amplades de columnes */
+  #printArea .col-absent { width: 16%; }
+  #printArea .col-group { width: 9%; }
+  #printArea .col-room { width: 13%; }
+  #printArea .col-tasks { width: 24%; }
+  #printArea .col-guard { width: 16%; }
+  #printArea .col-signature { width: 12%; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <h1>Guàrdies</h1>
+    <div class="subtitle">IES Josep Miquel Guàrdia</div>
+  </header>
+
+  <details id="configDetails" open>
+    <summary>
+      Configuració
+      <span class="badge" id="configBadge">Pendent</span>
+    </summary>
+    <div class="details-content">
+      <div class="field">
+        <label for="apiUrl">URL de l'API</label>
+        <input type="text" id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <div class="field">
+        <label for="apiToken">Token secret</label>
+        <input type="password" id="apiToken" placeholder="El token definit al codi de l'Apps Script">
+        <div class="help-text">Es desa al teu navegador. Mai no surt d'aquest dispositiu.</div>
+      </div>
+      <button class="btn btn-primary" onclick="saveConfig()">Desa la configuració</button>
+    </div>
+  </details>
+
+  <div class="toolbar">
+    <input type="date" id="dateSelector">
+    <button class="btn btn-primary" id="loadBtn" onclick="loadData()">Carrega dia</button>
+    <button class="btn" onclick="loadToday()">Avui</button>
+    <button class="btn" id="pdfBtn" onclick="openPreview()" disabled style="margin-left: auto;">Generar PDF</button>
+  </div>
+
+  <div id="errorArea"></div>
+  <div id="resultsArea"></div>
+
+</div>
+
+<!-- Barra superior visible només en mode vista prèvia -->
+<div class="preview-bar">
+  <span style="font-weight: 600;">Vista prèvia del PDF</span>
+  <span style="opacity: 0.7;">Format: DIN A3 horitzontal</span>
+  <div class="spacer"></div>
+  <button onclick="closePreview()">Tancar</button>
+  <button class="primary" onclick="window.print()">Imprimir / Desar com a PDF</button>
+</div>
+
+<!-- Modal d'edició de tasca -->
+<div class="modal-backdrop" id="taskModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Editar tasca</h3>
+      <div class="modal-subtitle" id="taskModalSubtitle"></div>
+    </div>
+    <div class="modal-body">
+      <label for="taskTextarea">Tasca per als alumnes</label>
+      <textarea id="taskTextarea" placeholder="Ex: Fer els exercicis del tema 5, pàg. 87-89"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeTaskModal()">Cancel·lar</button>
+      <button class="btn btn-primary" onclick="saveTaskModal()">Desa</button>
+    </div>
+  </div>
+</div>
+
+<!-- Contingut de la plantilla impresa -->
+<div id="printArea"></div>
+
+<script>
+
+const SESSIONS = [
+  { num: 1, start: '8:00',  end: '8:55',  franja: '8:00 - 8:55' },
+  { num: 2, start: '8:55',  end: '9:50',  franja: '8:55 - 9:50' },
+  { num: 3, start: '9:50',  end: '10:45', franja: '9:50 - 10:45' },
+  { num: 4, start: '11:20', end: '12:15', franja: '11:20 - 12:15' },
+  { num: 5, start: '12:15', end: '13:10', franja: '12:15 - 13:10' },
+  { num: 6, start: '13:10', end: '14:05', franja: '13:10 - 14:05' },
+  { num: 7, start: '14:05', end: '15:00', franja: '14:05 - 15:00' }
+];
+
+const PATRONS_IGNORAR = [
+  /s[\'\u2019]han fet canvis/i,
+  /no s[\'\u2019]ha de cobrir/i,
+  /ja est[àa] cobert/i,
+  /ja cobert/i,
+  /classes cobertes/i
+];
+
+// ==== Config ====
+function loadConfig() {
+  document.getElementById('apiUrl').value = localStorage.getItem('guardies_apiUrl') || '';
+  document.getElementById('apiToken').value = localStorage.getItem('guardies_apiToken') || '';
+  updateConfigBadge();
+}
+
+function saveConfig() {
+  const url = document.getElementById('apiUrl').value.trim();
+  const token = document.getElementById('apiToken').value.trim();
+  if (!url || !token) return showError('Cal omplir tant la URL com el token');
+  localStorage.setItem('guardies_apiUrl', url);
+  localStorage.setItem('guardies_apiToken', token);
+  clearError();
+  updateConfigBadge();
+  document.getElementById('configDetails').open = false;
+  loadToday();
+}
+
+function updateConfigBadge() {
+  const badge = document.getElementById('configBadge');
+  const ok = localStorage.getItem('guardies_apiUrl') && localStorage.getItem('guardies_apiToken');
+  badge.textContent = ok ? 'Configurat' : 'Pendent';
+  badge.className = ok ? 'badge badge-ok' : 'badge badge-warn';
+}
+
+// ==== Missatges ====
+function showError(msg) {
+  document.getElementById('errorArea').innerHTML =
+    `<div class="alert alert-error">${escapeHtml(msg)}</div>`;
+}
+
+function clearError() {
+  document.getElementById('errorArea').innerHTML = '';
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Escape per a strings dins atributs onclick="..." amb cometes simples
+function escapeJs(str) {
+  return String(str || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '&quot;');
+}
+
+// Estat global de l'última càrrega (per generar el PDF)
+let lastLoadedData = null;
+
+// Estat per a interaccions de l'usuari (no es desa, només sessió actual)
+// guardiesEsborrades: Set de claus "franja|absentName|guardiaName" que s'han marcat com a no necessàries
+// tasquesEditades: Map de "franja|absentName" → tasca personalitzada
+let guardiesEsborrades = new Set();
+let tasquesEditades = new Map();
+let editingContext = null; // {franja, absentName, defaultText}
+
+function makeKey(franja, absentName, guardiaName) {
+  return `${franja}|${absentName}|${guardiaName || ''}`;
+}
+
+// Reseteja l'estat d'interaccions quan es carrega un nou dia
+function resetUIState() {
+  guardiesEsborrades.clear();
+  tasquesEditades.clear();
+}
+
+// ==== Petició a l'API ====
+async function apiRequest(params) {
+  const url = localStorage.getItem('guardies_apiUrl');
+  const token = localStorage.getItem('guardies_apiToken');
+
+  const qs = Object.entries({ ...params, token })
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&');
+
+  const fullUrl = `${url}?${qs}`;
+
+  const response = await fetch(fullUrl, {
+    method: 'GET',
+    redirect: 'follow'
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error HTTP ${response.status}`);
+  }
+
+  const text = await response.text();
+
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error('Resposta no vàlida del servidor');
+  }
+}
+
+// ==== Normalització noms ====
+function normalitzarNom(nom) {
+  return String(nom || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[_]/g, ' ').trim().replace(/\s+/g, ' ');
+}
+
+function nomsCoincideixen(nom1, nom2) {
+  const n1 = normalitzarNom(nom1);
+  const n2 = normalitzarNom(nom2);
+  if (!n1 || !n2) return false;
+  return n1.includes(n2) || n2.includes(n1);
+}
+
+// ==== Parsing ====
+function horaAMinuts(str) {
+  const match = String(str).match(/(\d{1,2})[:.](\d{2})/);
+  if (!match) return null;
+  return parseInt(match[1]) * 60 + parseInt(match[2]);
+}
+
+function parsearFranja(franja) {
+  if (!franja) return null;
+  const text = String(franja).trim();
+  if (!/[-–]/.test(text)) return null;
+  const match = text.match(/(\d{1,2})[:.](\d{2})\s*[-–]?\s*(\d{1,2})[:.](\d{2})/);
+  if (!match) return null;
+  return {
+    inici: parseInt(match[1]) * 60 + parseInt(match[2]),
+    final: parseInt(match[3]) * 60 + parseInt(match[4])
+  };
+}
+
+function sessionsAfectades(franja) {
+  const parsed = parsearFranja(franja);
+  if (!parsed) return [];
+  return SESSIONS.filter(s => {
+    const sInici = horaAMinuts(s.start);
+    const sFinal = horaAMinuts(s.end);
+    return sInici >= parsed.inici && sFinal <= parsed.final;
+  });
+}
+
+function observacioIgnora(obs) {
+  if (!obs) return null;
+  for (const p of PATRONS_IGNORAR) {
+    if (p.test(obs)) return obs;
+  }
+  return null;
+}
+
+// ============================================================
+// PARSING DE TASQUES PER FRANJA
+// ============================================================
+// Detecta diferents formats al camp Observacions:
+//   - "8:00 - tasca", "8:00: tasca", "08:00 tasca"
+//   - "8h - tasca", "8h: tasca"
+//   - "1a hora - tasca", "2a hora: tasca"
+//   - Si no hi ha cap separació per franja → text general per a totes
+//
+// Retorna { general: "text", perFranja: { "8:00 - 8:55": "text", ... } }
+function parsearTasques(observacions) {
+  if (!observacions) return { general: '', perFranja: {} };
+  const text = observacions.trim();
+
+  // Patrons d'inici de franja:
+  // - HH:MM (8:00, 08:00, 8.00) seguit d'espais/-/:
+  // - Hh (8h, 8 h) seguit de -/:
+  // - Na hora / Nª hora seguit de -/:
+  const franjaRegex = /(\b\d{1,2}[:.]?\d{0,2}\s*h?\b|\b\d+[aª]?\s+hora\b)\s*[-:]?\s*/gi;
+
+  // Trobem totes les coincidències
+  const matches = [...text.matchAll(franjaRegex)];
+
+  if (matches.length === 0) {
+    // Cap patró d'hora — tot és tasca general
+    return { general: text, perFranja: {} };
+  }
+
+  // Construïm els segments
+  const perFranja = {};
+  let general = '';
+
+  // Primer segment (abans del primer match) → tasca general
+  if (matches[0].index > 0) {
+    const prev = text.substring(0, matches[0].index).trim().replace(/[;,.\s]+$/, '');
+    if (prev) general = prev;
+  }
+
+  for (let i = 0; i < matches.length; i++) {
+    const m = matches[i];
+    const horaTag = m[1].trim();
+    const start = m.index + m[0].length;
+    const end = i < matches.length - 1 ? matches[i + 1].index : text.length;
+    const tasca = text.substring(start, end).trim().replace(/[;,]+$/, '').trim();
+
+    if (!tasca) continue;
+
+    // Convertim el "tag" d'hora a la franja canònica
+    const franja = horaTagAFranja(horaTag);
+    if (franja) {
+      perFranja[franja] = tasca;
+    }
+  }
+
+  return { general, perFranja };
+}
+
+// Converteix "8:00", "8h", "1a hora" → "8:00 - 8:55"
+function horaTagAFranja(tag) {
+  const t = tag.toLowerCase().trim();
+
+  // Patró "Na hora"
+  const numHora = t.match(/^(\d+)[aª]?\s+hora$/);
+  if (numHora) {
+    const num = parseInt(numHora[1]);
+    const sessio = SESSIONS.find(s => s.num === num);
+    return sessio ? sessio.franja : null;
+  }
+
+  // Patró HH:MM o HH.MM o HHh
+  const hora = t.match(/^(\d{1,2})[:.]?(\d{0,2})\s*h?$/);
+  if (!hora) return null;
+  const h = parseInt(hora[1]);
+  const m = hora[2] ? parseInt(hora[2]) : 0;
+  const totalMin = h * 60 + m;
+
+  // Trobem la franja que comença en aquest minut (o més propera)
+  for (const s of SESSIONS) {
+    const sStart = horaAMinuts(s.start);
+    if (sStart === totalMin) return s.franja;
+  }
+  // Tolerància: ±5 minuts
+  for (const s of SESSIONS) {
+    const sStart = horaAMinuts(s.start);
+    if (Math.abs(sStart - totalMin) <= 5) return s.franja;
+  }
+  return null;
+}
+
+// Donada una absència i una franja, retorna la tasca corresponent.
+// Ordre de prioritat:
+//   1. Tasca editada manualment a l'app
+//   2. Tasca específica per franja del camp Observacions
+//   3. Tasca general del camp Observacions
+function obtenirTasca(abs, franja) {
+  const editKey = `${franja}|${abs._nom}`;
+  if (tasquesEditades.has(editKey)) {
+    return { text: tasquesEditades.get(editKey), source: 'editada' };
+  }
+
+  // Font: nova columna TASQUES si existeix, sinó Observacions (compatibilitat)
+  const fontText = abs._tasquesFont || '';
+  const parsed = parsearTasques(fontText);
+  if (parsed.perFranja[franja]) {
+    return { text: parsed.perFranja[franja], source: 'franja' };
+  }
+  if (parsed.general) {
+    return { text: parsed.general, source: 'general' };
+  }
+  return { text: '', source: 'cap' };
+}
+
+function classifyAbsence(abs) {
+  const issues = [];
+  const nom = String(abs['PROFESSOR/A ABSENT'] || '').trim();
+  const data = String(abs['DATA'] || '').trim();
+  const franja = String(abs['SESSIÓ / HORARI'] || '').trim();
+  const obs = String(abs['Observacions / classes a cobrir'] || '').trim();
+  // Nova columna TASQUES (font principal de tasques per als alumnes).
+  // Compatibilitat enrere: si la columna no existeix encara en aquell mes,
+  // s'usa el camp Observacions com fins ara.
+  const tasquesColumna = String(abs['TASQUES'] || abs['Tasques'] || abs['tasques'] || '').trim();
+  const tasquesFont = tasquesColumna || obs;
+  const grupFora = String(abs['GRUP FORA'] || abs['Grup fora'] || abs['grup fora'] || '').trim();
+
+  if (!nom) issues.push('falta el nom del professor');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) issues.push(`data amb format no estàndard: "${data}"`);
+
+  let sessions = [];
+  if (franja) {
+    sessions = sessionsAfectades(franja);
+    if (sessions.length === 0) issues.push(`franja horària mal formatada: "${franja}"`);
+  } else {
+    issues.push('falta la franja horària');
+  }
+
+  // Parsejar grups de sortida (separats per comes)
+  const grupsFora = grupFora
+    ? grupFora.split(',').map(g => g.trim()).filter(Boolean)
+    : [];
+
+  return {
+    _nom: nom,
+    _data: data,
+    _franja: franja,
+    _causa: String(abs['CAUSA ABSÈNCIA'] || '').trim().replace(/^\d+\.\s*/, ''),
+    _obs: obs,
+    _tasquesFont: tasquesFont,
+    _teColumnaTasques: !!tasquesColumna,
+    _grupsFora: grupsFora,
+    _sessions: sessions,
+    _issues: issues,
+    _valid: issues.length === 0,
+    _ignorada: observacioIgnora(obs)
+  };
+}
+
+// ==== Càrrega ====
+function loadToday() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateSelector').value = today;
+  loadData();
+}
+
+async function loadData() {
+  clearError();
+  const url = localStorage.getItem('guardies_apiUrl');
+  const token = localStorage.getItem('guardies_apiToken');
+  if (!url || !token) {
+    showError('Primer has de configurar la URL i el token de l\'API.');
+    document.getElementById('configDetails').open = true;
+    return;
+  }
+
+  const date = document.getElementById('dateSelector').value;
+  if (!date) return showError('Tria una data.');
+
+  const loadBtn = document.getElementById('loadBtn');
+  loadBtn.disabled = true;
+  loadBtn.textContent = 'Carregant…';
+  document.getElementById('resultsArea').innerHTML =
+    '<div class="loading">Llegint absències, cuadrant i horaris…</div>';
+
+  try {
+    const [absData, guardData, horData] = await Promise.all([
+      apiRequest({ accio: 'llistar', data: date }),
+      apiRequest({ accio: 'guardies', data: date }),
+      apiRequest({ accio: 'horaris', data: date })
+    ]);
+
+    if (absData.error) throw new Error(`Absències: ${absData.error}`);
+    if (guardData.error) throw new Error(`Guàrdies: ${guardData.error}`);
+    if (horData.error) throw new Error(`Horaris: ${horData.error}`);
+
+    lastLoadedData = { absData, guardData, horData, date };
+    resetUIState();
+    document.getElementById('pdfBtn').disabled = false;
+
+    renderAll(absData, guardData, horData, date);
+  } catch (err) {
+    document.getElementById('resultsArea').innerHTML = '';
+    showError(err.message);
+  } finally {
+    loadBtn.disabled = false;
+    loadBtn.textContent = 'Carrega dia';
+  }
+}
+
+// ==== Accions sobre les targetes ====
+function toggleEsborrar(franja, absentName, guardiaName) {
+  const key = makeKey(franja, absentName, guardiaName);
+  if (guardiesEsborrades.has(key)) {
+    guardiesEsborrades.delete(key);
+  } else {
+    guardiesEsborrades.add(key);
+  }
+  // Re-render parcial: simplement re-renderitzem tot
+  if (lastLoadedData) {
+    const { absData, guardData, horData, date } = lastLoadedData;
+    renderAll(absData, guardData, horData, date);
+  }
+}
+
+function obrirEditorTasca(franja, absentName) {
+  // Trobar la tasca actual
+  if (!lastLoadedData) return;
+  const { absData } = lastLoadedData;
+  const rawAbsences = (absData.absencies || [])
+    .filter(a => String(a['PROFESSOR/A ABSENT'] || '').trim());
+  const classified = rawAbsences.map(classifyAbsence);
+  const abs = classified.find(a => a._nom === absentName && a._sessions.some(s => s.franja === franja));
+
+  let textActual = '';
+  if (abs) {
+    const tasca = obtenirTasca(abs, franja);
+    textActual = tasca.text;
+  }
+
+  editingContext = { franja, absentName };
+  document.getElementById('taskTextarea').value = textActual;
+  document.getElementById('taskModalSubtitle').textContent = `${absentName} · ${franja}`;
+  document.getElementById('taskModal').classList.add('active');
+  setTimeout(() => document.getElementById('taskTextarea').focus(), 50);
+}
+
+function closeTaskModal() {
+  document.getElementById('taskModal').classList.remove('active');
+  editingContext = null;
+}
+
+function saveTaskModal() {
+  if (!editingContext) return closeTaskModal();
+  const text = document.getElementById('taskTextarea').value.trim();
+  const key = `${editingContext.franja}|${editingContext.absentName}`;
+  if (text) {
+    tasquesEditades.set(key, text);
+  } else {
+    tasquesEditades.delete(key);
+  }
+  closeTaskModal();
+  if (lastLoadedData) {
+    const { absData, guardData, horData, date } = lastLoadedData;
+    renderAll(absData, guardData, horData, date);
+  }
+}
+
+// Tancar el modal amb Esc o clicant el fons
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeTaskModal();
+});
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'taskModal') closeTaskModal();
+});
+
+// ==== Render ====
+function formatDate(iso) {
+  const [y, m, d] = iso.split('-');
+  const dies = ['Dg', 'Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds'];
+  const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+  return `${dies[date.getDay()]} ${d}/${m}/${y}`;
+}
+
+function trobarClasse(horariSessions, nomProfessor, franja) {
+  return horariSessions.find(s =>
+    nomsCoincideixen(s.professor, nomProfessor) &&
+    s.franja === franja
+  );
+}
+
+function estaAbsent(nomGuardia, absencies) {
+  return absencies.find(abs => {
+    if (!abs._valid || abs._ignorada) return false;
+    return nomsCoincideixen(abs._nom, nomGuardia);
+  });
+}
+
+// Recull tots els grups que estan fora del centre aquell dia,
+// amb les franges afectades
+function recollirGrupsFora(absencies) {
+  const resultat = []; // array de { grup, sessions: [num, num...] }
+  absencies.forEach(abs => {
+    if (!abs._valid || abs._ignorada) return;
+    if (abs._grupsFora.length === 0) return;
+    const numsSessions = abs._sessions.map(s => s.num);
+    abs._grupsFora.forEach(grup => {
+      const existent = resultat.find(r => normalitzarGrup(r.grup) === normalitzarGrup(grup));
+      if (existent) {
+        numsSessions.forEach(n => {
+          if (!existent.sessions.includes(n)) existent.sessions.push(n);
+        });
+      } else {
+        resultat.push({ grup: grup, sessions: [...numsSessions] });
+      }
+    });
+  });
+  return resultat;
+}
+
+// Normalitza el grup per comparacions (treu espais, majúscules uniformes)
+function normalitzarGrup(grup) {
+  return String(grup || '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+// Comprova si la classe amb un grup concret està "fora" en una franja determinada
+function classeGrupFora(grupClasse, numSessio, grupsFora) {
+  if (!grupClasse) return null;
+  const grupNorm = normalitzarGrup(grupClasse);
+  // Un grup està fora si:
+  // - El grup exacte està fora (ex: "2n ESO A" està fora)
+  // - El curs sencer està fora (ex: "2n ESO" cobreix "2n ESO A", "2n ESO B"...)
+  for (const gf of grupsFora) {
+    if (!gf.sessions.includes(numSessio)) continue;
+    const gfNorm = normalitzarGrup(gf.grup);
+    if (grupNorm === gfNorm) return gf.grup;
+    // Si el grup fora és un curs sencer (sense lletra), mira si la classe és d'aquest curs
+    if (grupNorm.startsWith(gfNorm + ' ')) return gf.grup;
+    if (grupNorm.startsWith(gfNorm) && !gfNorm.match(/[a-z]$/)) {
+      // ex: gfNorm="2n eso", grupNorm="2n eso a"
+      return gf.grup;
+    }
+  }
+  return null;
+}
+
+function renderAll(absData, guardData, horData, date) {
+  const area = document.getElementById('resultsArea');
+  const rawAbsences = (absData.absencies || [])
+    .filter(a => String(a['PROFESSOR/A ABSENT'] || '').trim());
+
+  const classified = rawAbsences.map(classifyAbsence);
+  const valids = classified.filter(a => a._valid && !a._ignorada);
+  const ignored = classified.filter(a => a._ignorada);
+  const errors = classified.filter(a => !a._valid);
+
+  const horariSessions = horData.sessions || [];
+
+  // Recollim els grups que estan fora del centre avui
+  const grupsFora = recollirGrupsFora(valids);
+
+  let html = `
+    <div class="results-meta">
+      <strong>${escapeHtml(guardData.dia || '')}</strong>
+      · ${formatDate(date)}
+      · Pestanya abs.: <strong>${escapeHtml(absData.pestanya)}</strong>
+      · ${valids.length} ${valids.length === 1 ? 'absència activa' : 'absències actives'}
+      ${ignored.length > 0 ? `· ${ignored.length} ja cobertes` : ''}
+      ${errors.length > 0 ? `· <span style="color: var(--warn);">${errors.length} amb errors</span>` : ''}
+    </div>
+  `;
+
+  if (grupsFora.length > 0) {
+    html += `<div class="sortida-banner">`;
+    html += `<strong>📍 Grups fora del centre avui:</strong> `;
+    html += grupsFora.map(gf => escapeHtml(gf.grup)).join(', ');
+    html += `</div>`;
+  }
+
+  if (valids.length === 0 && errors.length === 0 && ignored.length === 0) {
+    html += `
+      <div class="empty-state">
+        <div class="empty-state-icon">✓</div>
+        <div>Cap absència registrada per aquest dia</div>
+      </div>
+    `;
+    area.innerHTML = html;
+    return;
+  }
+
+  const guardies = guardData.guardies || {};
+
+  SESSIONS.forEach(s => {
+    // Filtrem: un professor absent apareix en una franja NOMÉS si té una sessió
+    // a HORARIS en aquella franja concreta (lectiva, tutoria o guàrdia).
+    // Si no apareix a HORARIS en cap franja, el mostrem sempre (horari no carregat).
+    const teProfessorHorari = (abs) => {
+      const sessionsHorari = horariSessions.filter(s2 => nomsCoincideixen(s2.professor, abs._nom));
+      if (sessionsHorari.length === 0) return true; // sense horari: mostrem sempre
+      return sessionsHorari.some(s2 => s2.franja === s.franja);
+    };
+    const absenciesFranja = valids.filter(a =>
+      a._sessions.some(sess => sess.num === s.num) && teProfessorHorari(a)
+    );
+    const guardiesFranja = guardies[s.franja] || [];
+
+    if (absenciesFranja.length === 0 && guardiesFranja.length === 0) return;
+
+    const hasAbsences = absenciesFranja.length > 0;
+
+    html += `
+      <div class="franja-block ${!hasAbsences ? 'franja-sense-absencies' : ''}">
+        <div class="franja-header">
+          <span class="franja-time">${s.franja}</span>
+          <span class="franja-status ${hasAbsences ? 'has-absences' : ''}">
+            ${hasAbsences
+              ? `${absenciesFranja.length} ${absenciesFranja.length === 1 ? 'absència' : 'absències'}`
+              : 'Sense absències'}
+          </span>
+        </div>
+    `;
+
+    if (!hasAbsences) {
+      const guardiesHTML = guardiesFranja.map(g => {
+        const abs = estaAbsent(g, valids);
+        if (abs) {
+          return `<span style="color: var(--text-muted); text-decoration: line-through;">${escapeHtml(g)}</span> <span class="absent-tag">no fa guàrdia</span>`;
+        }
+        return escapeHtml(g);
+      }).join(', ') || '—';
+
+      html += `
+        <div class="franja-content">
+          Professors de guàrdia: ${guardiesHTML}
+        </div>
+      </div>
+      `;
+      return;
+    }
+
+    html += `<div class="franja-content">
+      <div>
+        <h4>Guàrdies a cobrir</h4>
+        <div class="guardia-cards">`;
+
+    absenciesFranja.forEach(abs => {
+      const classe = trobarClasse(horariSessions, abs._nom, s.franja);
+      const cardKey = makeKey(s.franja, abs._nom, '');
+      const isRemoved = guardiesEsborrades.has(cardKey);
+
+      let noEsCobreix = false;
+      let infoExtra = '';
+      let grupText = '', aulaText = '', materiaText = '';
+
+      if (classe) {
+        if (classe.tipus === 'LECTIVA' || classe.tipus === 'TUTORIA_GRUP') {
+          const grupForaDetectat = classeGrupFora(classe.grup, s.num, grupsFora);
+          if (grupForaDetectat) {
+            noEsCobreix = true;
+            infoExtra = `<span class="cause" style="background:#e0e7ff;color:#3730a3;">Grup de sortida — no cal cobrir</span>`;
+            grupText = classe.grup || '';
+          } else {
+            grupText = classe.grup || '';
+            aulaText = classe.aula || '';
+            materiaText = classe.materia || '';
+          }
+        } else if (classe.tipus === 'GUARDIA') {
+          noEsCobreix = true;
+          infoExtra = `<span class="cause">Tenia guàrdia — no cal cobrir</span>`;
+        }
+      }
+
+      const tasca = obtenirTasca(abs, s.franja);
+      const tascaText = tasca.text;
+      const isEdited = tasca.source === 'editada';
+
+      html += `<div class="guardia-card ${isRemoved ? 'removed' : ''}">`;
+      html += `<div class="guardia-card-head">`;
+      html += `<div class="guardia-card-title">${escapeHtml(abs._nom)}</div>`;
+      html += `<div class="guardia-card-actions">`;
+      if (!noEsCobreix) {
+        html += `<button class="guardia-card-btn" title="Editar tasca" onclick="obrirEditorTasca('${escapeJs(s.franja)}', '${escapeJs(abs._nom)}')">&#9998;</button>`;
+      }
+      if (isRemoved) {
+        html += `<button class="guardia-card-btn restore" title="Restaurar guàrdia" onclick="toggleEsborrar('${escapeJs(s.franja)}', '${escapeJs(abs._nom)}', '')">&#8634;</button>`;
+      } else {
+        html += `<button class="guardia-card-btn remove" title="Esborrar (no cal cobrir)" onclick="toggleEsborrar('${escapeJs(s.franja)}', '${escapeJs(abs._nom)}', '')">&times;</button>`;
+      }
+      html += `</div></div>`;
+
+      const metaParts = [];
+      if (abs._causa) metaParts.push(`<span class="cause">${escapeHtml(abs._causa)}</span>`);
+      if (grupText) metaParts.push(`<span class="grup">${escapeHtml(grupText)}</span>`);
+      if (aulaText) metaParts.push(`<span class="aula">${escapeHtml(aulaText)}</span>`);
+      if (materiaText) metaParts.push(`<span class="materia">${escapeHtml(materiaText)}</span>`);
+      if (infoExtra) metaParts.push(infoExtra);
+
+      if (metaParts.length > 0) {
+        html += `<div class="guardia-card-meta">${metaParts.join('')}</div>`;
+      }
+
+      if (!classe) {
+        html += `<div class="guardia-card-meta"><span style="color:var(--text-muted);font-style:italic;">No apareix a HORARIS en aquesta franja</span></div>`;
+      }
+
+      if (!noEsCobreix) {
+        if (tascaText) {
+          const className = isEdited ? 'edited' : '';
+          const label = isEdited ? 'Tasca (editada)' : 'Tasca';
+          html += `<div class="guardia-card-tasca ${className}"><strong>${label}</strong>${escapeHtml(tascaText)}</div>`;
+        } else {
+          html += `<div class="guardia-card-tasca empty"><strong>Tasca</strong>Sense tasca · clica per editar</div>`;
+        }
+      }
+
+      // Nota interna (camp Observacions). Només es mostra si el Sheet ja té
+      // la columna TASQUES separada, perquè en cas contrari Observacions
+      // ja s'està usant com a font de tasques i mostrar-ho seria duplicar.
+      if (abs._teColumnaTasques && abs._obs) {
+        html += `<div class="nota-interna"><strong>Nota interna</strong>${escapeHtml(abs._obs)}</div>`;
+      }
+
+      html += `</div>`;
+    });
+
+    html += `</div></div>
+      <div>
+        <h4>Professors de guàrdia</h4>
+        <ul class="guards-list">`;
+
+    if (guardiesFranja.length === 0) {
+      html += `<li class="empty-column">— Cap al cuadrant —</li>`;
+    } else {
+      guardiesFranja.forEach(g => {
+        const absGuardia = estaAbsent(g, valids);
+        if (absGuardia) {
+          // Comprovem si tenia GUARDIA assignada en aquesta franja concreta
+          const classeGuardia = trobarClasse(horariSessions, g, s.franja);
+          const teGuardiaFranja = classeGuardia && classeGuardia.tipus === 'GUARDIA';
+          if (teGuardiaFranja) {
+            html += `<li class="guard-entry absent-guard">${escapeHtml(g)} <span class="absent-tag">(no fa guàrdia)</span></li>`;
+          } else {
+            html += `<li class="guard-entry absent-guard">${escapeHtml(g)} <span class="absent-tag">absent</span></li>`;
+          }
+        } else {
+          html += `<li class="guard-entry">${escapeHtml(g)}</li>`;
+        }
+      });
+    }
+
+    html += `</ul></div></div></div>`;
+  });
+
+  if (ignored.length > 0) {
+    html += '<div class="warnings-section ignored">';
+    html += `<h3>Absències ja cobertes / amb canvis</h3>`;
+    ignored.forEach(abs => {
+      html += `
+        <div class="warning-item ignored">
+          <strong>${escapeHtml(abs._nom)}</strong>
+          ${abs._franja ? ` · ${escapeHtml(abs._franja)}` : ''}
+          <div class="reason ignored">"${escapeHtml(abs._ignorada)}"</div>
+        </div>`;
+    });
+    html += '</div>';
+  }
+
+  if (errors.length > 0) {
+    html += '<div class="warnings-section errors">';
+    html += `<h3>Files amb errors al Sheet</h3>`;
+    errors.forEach(abs => {
+      html += `
+        <div class="warning-item error">
+          <strong>${escapeHtml(abs._nom || '(sense nom)')}</strong>
+          ${abs._franja ? ` · ${escapeHtml(abs._franja)}` : ''}
+          <div class="reason error">⚠ ${abs._issues.map(escapeHtml).join(' · ')}</div>
+        </div>`;
+    });
+    html += '</div>';
+  }
+
+  area.innerHTML = html;
+}
+
+// ============================================================
+// GENERACIÓ DEL PDF (DIN A3 horitzontal)
+// ============================================================
+
+// Acurta nom complet a "Nom + 1r cognom"
+// Gestiona prenoms compostos (Miquel Àngel, Joan P, Maria José...)
+function nomCurt(nomComplet) {
+  if (!nomComplet) return '';
+  const parts = nomComplet.trim().split(/\s+/);
+  if (parts.length <= 2) return nomComplet;
+
+  const prenomsCompostos = ['Miquel', 'Joan', 'Maria', 'José', 'María', 'Anna', 'Josep', 'Juan', 'Ana', 'Jose'];
+  const segonaParaulaPrenom = ['Àngel', 'Pere', 'Antoni', 'Maria', 'María', 'Carles', 'P', 'Lluís', 'Ma', 'Pau'];
+
+  if (prenomsCompostos.includes(parts[0]) && segonaParaulaPrenom.includes(parts[1])) {
+    return `${parts[0]} ${parts[1]} ${parts[2]}`;
+  }
+  return `${parts[0]} ${parts[1]}`;
+}
+
+const DIES_SETMANA_LABELS = ['DIUMENGE', 'DILLUNS', 'DIMARTS', 'DIMECRES', 'DIJOUS', 'DIVENDRES', 'DISSABTE'];
+
+function buildPrintHTML() {
+  if (!lastLoadedData) return '';
+
+  const { absData, guardData, horData, date } = lastLoadedData;
+  const [y, m, d] = date.split('-');
+  const dateStr = `${d}/${m}/${y.slice(-2)}`;
+  const dia = DIES_SETMANA_LABELS[new Date(parseInt(y), parseInt(m) - 1, parseInt(d)).getDay()];
+
+  const rawAbsences = (absData.absencies || [])
+    .filter(a => String(a['PROFESSOR/A ABSENT'] || '').trim());
+  const classified = rawAbsences.map(classifyAbsence);
+  const valids = classified.filter(a => a._valid && !a._ignorada);
+  const grupsFora = recollirGrupsFora(valids);
+  const horariSessions = horData.sessions || [];
+  const guardies = guardData.guardies || {};
+
+  let html = `<div class="doc-title">${escapeHtml(dia)} ${escapeHtml(dateStr)}</div>`;
+
+  // SEMPRE recorrem totes les franges definides al cuadrant
+  // (no només les que tenen activitat). Així el full té sempre la
+  // mateixa estructura, amb totes les caselles per signar.
+  SESSIONS.forEach(s => {
+    const guardiesFranja = guardies[s.franja] || [];
+
+    // Saltem només les franges que no existeixen al cuadrant
+    // (ex: 14:05-15:00 si aquell dia no hi ha cap professor assignat)
+    if (guardiesFranja.length === 0) return;
+
+    // Filtrem les absències que jefatura ha marcat com a "no cal cobrir" (X)
+    const absenciesFranja = valids
+      .filter(a => a._sessions.some(sess => sess.num === s.num))
+      .filter(a => !guardiesEsborrades.has(makeKey(s.franja, a._nom, '')));
+
+    html += `<div class="session-block">`;
+    html += `<div class="session-label">${escapeHtml(s.start)} – ${escapeHtml(s.end)}</div>`;
+    html += `<table>
+      <thead>
+        <tr>
+          <th class="col-absent">Professorat absent</th>
+          <th class="col-group">Grup</th>
+          <th class="col-room">Aula</th>
+          <th class="col-tasks">Tasques</th>
+          <th class="col-guard">Professorat de guàrdia</th>
+          <th class="col-signature">Signatura</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    // SEMPRE generem una fila per cada professor de guàrdia del cuadrant.
+    // Si hi ha absència que li toca cobrir, omplim les seves dades.
+    // Si no, la fila queda buida (excepte el nom del professor de guàrdia).
+    guardiesFranja.forEach((guardia, i) => {
+      const abs = absenciesFranja[i]; // assignació per ordre
+
+      let nomAbsent = '', grup = '', aula = '', tasques = '';
+
+      if (abs) {
+        nomAbsent = nomCurt(abs._nom);
+        const classe = trobarClasse(horariSessions, abs._nom, s.franja);
+        if (classe && (classe.tipus === 'LECTIVA' || classe.tipus === 'TUTORIA_GRUP')) {
+          const grupForaDetectat = classeGrupFora(classe.grup, s.num, grupsFora);
+          if (!grupForaDetectat) {
+            grup = classe.grup || '';
+            aula = classe.aula || '';
+          } else {
+            grup = `(${classe.grup} fora)`;
+          }
+        }
+        // Tasca específica per a aquesta franja (parsejada o editada)
+        const tascaResult = obtenirTasca(abs, s.franja);
+        tasques = tascaResult.text || '';
+      }
+
+      html += `<tr>
+        <td class="absent-cell">${escapeHtml(nomAbsent)}</td>
+        <td class="group-cell">${escapeHtml(grup)}</td>
+        <td class="room-cell">${escapeHtml(aula)}</td>
+        <td class="tasks-cell">${escapeHtml(tasques)}</td>
+        <td class="guard-cell">${escapeHtml(nomCurt(guardia))}</td>
+        <td class="signature-cell"></td>
+      </tr>`;
+    });
+
+    // Si hi ha MÉS absències que professors de guàrdia, les afegim com a files
+    // extra al final (queden marcades, jefatura ho resoldrà manualment)
+    if (absenciesFranja.length > guardiesFranja.length) {
+      for (let i = guardiesFranja.length; i < absenciesFranja.length; i++) {
+        const abs = absenciesFranja[i];
+        const nomAbsent = nomCurt(abs._nom);
+        const classe = trobarClasse(horariSessions, abs._nom, s.franja);
+        let grup = '', aula = '';
+        if (classe && (classe.tipus === 'LECTIVA' || classe.tipus === 'TUTORIA_GRUP')) {
+          const grupForaDetectat = classeGrupFora(classe.grup, s.num, grupsFora);
+          if (!grupForaDetectat) {
+            grup = classe.grup || '';
+            aula = classe.aula || '';
+          } else {
+            grup = `(${classe.grup} fora)`;
+          }
+        }
+        const tascaResultExtra = obtenirTasca(abs, s.franja);
+        html += `<tr>
+          <td class="absent-cell">${escapeHtml(nomAbsent)}</td>
+          <td class="group-cell">${escapeHtml(grup)}</td>
+          <td class="room-cell">${escapeHtml(aula)}</td>
+          <td class="tasks-cell">${escapeHtml(tascaResultExtra.text || '')}</td>
+          <td class="guard-cell"></td>
+          <td class="signature-cell"></td>
+        </tr>`;
+      }
+    }
+
+    html += `</tbody></table></div>`;
+  });
+
+  // Seccions finals
+  html += `
+    <div class="footer-sections">
+      <div class="footer-box">
+        <div class="footer-box-title">Sortides:</div>
+      </div>
+      <div class="footer-box">
+        <div class="footer-box-title">Alumnat expulsat a l'aula de convivència:</div>
+      </div>
+      <div class="footer-box">
+        <div class="footer-box-title">Observacions:</div>
+      </div>
+    </div>
+  `;
+
+  return html;
+}
+
+function openPreview() {
+  if (!lastLoadedData) {
+    showError('Cal carregar les dades d\'un dia abans de generar el PDF.');
+    return;
+  }
+  document.getElementById('printArea').innerHTML = buildPrintHTML();
+  document.body.classList.add('preview-mode');
+  window.scrollTo(0, 0);
+}
+
+function closePreview() {
+  document.body.classList.remove('preview-mode');
+}
+
+// ==== Init ====
+loadConfig();
+
+if (localStorage.getItem('guardies_apiUrl') && localStorage.getItem('guardies_apiToken')) {
+  document.getElementById('configDetails').open = false;
+  loadToday();
+} else {
+  document.getElementById('dateSelector').value = new Date().toISOString().split('T')[0];
+}
+
+</script>
+
+</body>
+</html>
