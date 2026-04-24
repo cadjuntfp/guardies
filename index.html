@@ -1054,8 +1054,8 @@ const PATRONS_IGNORAR = [
 
 // ==== Config ====
 function loadConfig() {
-  const url = localStorage.getItem('guardies_apiUrl') || '';
-  const token = localStorage.getItem('guardies_apiToken') || '';
+  const url = localStorage.getItem('guardies_apiUrl') || HARDCODED_URL;
+  const token = localStorage.getItem('guardies_apiToken') || HARDCODED_TOKEN;
   const isConfigured = url && token;
 
   document.getElementById('onboardingScreen').style.display = isConfigured ? 'none' : 'block';
@@ -1982,13 +1982,20 @@ function closePreview() {
   document.body.classList.remove('preview-mode');
 }
 
+// ==== Configuració hardcoded (no cal configurar manualment) ====
+const HARDCODED_URL   = 'https://script.google.com/macros/s/AKfycbzIEbnY0du0PFUfG41WEXsPbqeOKh2H07xLkfHQHD1qPRK7vzISoAwg9sWSXTCB1rC0/exec';
+const HARDCODED_TOKEN = 'absenciesguardia2026';
+
 // ==== Init ====
 loadConfig();
 
 if (localStorage.getItem('guardies_apiUrl') && localStorage.getItem('guardies_apiToken')) {
   loadToday();
 } else {
-  document.getElementById('dateSelector').value = new Date().toISOString().split('T')[0];
+  // Usar configuració hardcoded: carregar avui directament
+  localStorage.setItem('guardies_apiUrl', HARDCODED_URL);
+  localStorage.setItem('guardies_apiToken', HARDCODED_TOKEN);
+  loadToday();
 }
 
 // Tancar el modal de configuració amb Esc o clicant el fons
