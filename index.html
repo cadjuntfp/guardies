@@ -1410,22 +1410,21 @@ async function loadData() {
     '<div class="loading">Llegint absències, cuadrant i horaris…</div>';
 
   try {
-    const [absData, guardData, horData, patiData] = await Promise.all([
+    const [absData, guardData, horData] = await Promise.all([
       apiRequest({ accio: 'llistar', data: date }),
       apiRequest({ accio: 'guardies', data: date }),
-      apiRequest({ accio: 'horaris', data: date }),
-      apiRequest({ accio: 'guardia_pati', data: date })
+      apiRequest({ accio: 'horaris', data: date })
     ]);
 
     if (absData.error) throw new Error(`Absències: ${absData.error}`);
     if (guardData.error) throw new Error(`Guàrdies: ${guardData.error}`);
     if (horData.error) throw new Error(`Horaris: ${horData.error}`);
 
-    lastLoadedData = { absData, guardData, horData, patiData, date };
+    lastLoadedData = { absData, guardData, horData, date };
     resetUIState();
     document.getElementById('pdfBtn').disabled = false;
 
-    renderAll(absData, guardData, horData, patiData, date);
+    renderAll(absData, guardData, horData, date);
   } catch (err) {
     document.getElementById('resultsArea').innerHTML = '';
     showError(err.message);
@@ -1445,8 +1444,8 @@ function toggleEsborrar(franja, absentName, guardiaName) {
   }
   // Re-render parcial: simplement re-renderitzem tot
   if (lastLoadedData) {
-    const { absData, guardData, horData, patiData, date } = lastLoadedData;
-    renderAll(absData, guardData, horData, patiData, date);
+    const { absData, guardData, horData, date } = lastLoadedData;
+    renderAll(absData, guardData, horData, date);
   }
 }
 
@@ -1488,8 +1487,8 @@ function saveTaskModal() {
   }
   closeTaskModal();
   if (lastLoadedData) {
-    const { absData, guardData, horData, patiData, date } = lastLoadedData;
-    renderAll(absData, guardData, horData, patiData, date);
+    const { absData, guardData, horData, date } = lastLoadedData;
+    renderAll(absData, guardData, horData, date);
   }
 }
 
@@ -1571,7 +1570,7 @@ function classeGrupFora(grupClasse, numSessio, grupsFora) {
   return null;
 }
 
-function renderAll(absData, guardData, horData, patiData, date) {
+function renderAll(absData, guardData, horData, date) {
   const area = document.getElementById('resultsArea');
   const rawAbsences = (absData.absencies || [])
     .filter(a => String(a['PROFESSOR/A ABSENT'] || '').trim());
@@ -1834,7 +1833,7 @@ const DIES_SETMANA_LABELS = ['DIUMENGE', 'DILLUNS', 'DIMARTS', 'DIMECRES', 'DIJO
 function buildPrintHTML() {
   if (!lastLoadedData) return '';
 
-  const { absData, guardData, horData, patiData, date } = lastLoadedData;
+  const { absData, guardData, horData, date } = lastLoadedData;
   const [y, m, d] = date.split('-');
   const dateStr = `${d}/${m}/${y.slice(-2)}`;
   const dia = DIES_SETMANA_LABELS[new Date(parseInt(y), parseInt(m) - 1, parseInt(d)).getDay()];
@@ -1886,7 +1885,10 @@ function buildPrintHTML() {
       <tbody>`;
 
     // Separem guards disponibles (no absents) dels que tenen guàrdia però estan absents
-    const guardiesAbsents = guardiesFranja.filter(g => estaAbsent(g, valids));
+    const guardiesAbsents = guardiesFranja.filter(g =>
+      estaAbsent(g, valids) &&
+      !absenciesFranja.some(a => nomsCoincideixen(a._nom, g))
+    );
     const guardiesDisponibles = guardiesFranja.filter(g => !estaAbsent(g, valids));
 
     // Calculem el nombre màxim de files: el major entre absències a cobrir i guards disponibles
@@ -1951,19 +1953,6 @@ function buildPrintHTML() {
     html += `</tbody></table></div>`;
   });
 
-  // ---- Guàrdia de pati ----
-  // Només mostrem a Observacions si algun professor de guàrdia de pati és absent
-  const professorsPatiFull = (patiData && !patiData.error && Array.isArray(patiData.professors))
-    ? patiData.professors : [];
-
-  const absentsPati = professorsPatiFull.filter(nom =>
-    valids.some(abs => nomsCoincideixen(abs._nom, nom))
-  );
-
-  const observacionsText = absentsPati.length > 0
-    ? `Guàrdia de pati: ${absentsPati.join(', ')}`
-    : '';
-
   // Seccions finals
   html += `
     <div class="footer-sections">
@@ -1974,7 +1963,7 @@ function buildPrintHTML() {
         <div class="footer-box-title">Alumnat expulsat a l'aula de convivència:</div>
       </div>
       <div class="footer-box">
-        <div class="footer-box-title">Observacions:${observacionsText ? ` <span style="font-weight:normal;">${escapeHtml(observacionsText)}</span>` : ''}</div>
+        <div class="footer-box-title">Observacions:</div>
       </div>
     </div>
   `;
