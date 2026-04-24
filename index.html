@@ -1239,25 +1239,28 @@ function parsearTasques(observacions) {
   if (!observacions) return { general: '', perFranja: {} };
   const text = observacions.trim();
 
-  // Patrons d'inici de franja:
-  // - HH:MM (8:00, 08:00, 8.00) seguit d'espais/-/:
-  // - Hh (8h, 8 h) seguit de -/:
-  // - Na hora / Nª hora seguit de -/:
-  const franjaRegex = /(\b\d{1,2}[:.]?\d{0,2}\s*h?\b|\b\d+[aª]?\s+hora\b)\s*[-:]?\s*/gi;
+  // Una marca de franja NOMÉS és vàlida si va precedida de:
+  //   - inici del text (^)
+  //   - punt i coma (;)
+  //   - salt de línia (\n)
+  // Això evita falsos positius com "Ex. 8 pàg. 50" on el número apareix
+  // enmig d'un text normal i no indica cap franja horària.
+  //
+  // Formats acceptats: HH:MM · HH.MM · HHh · "Na hora" / "Nª hora"
+  const franjaRegex = /(?:^|[;\n])\s*(\d{1,2}:\d{2}|\d{1,2}\.\d{2}|\d{1,2}\s*h\b|\d+[aª]\s+hora\b|\d+\s+hora\b)\s*[-–:]?\s*/gim;
 
-  // Trobem totes les coincidències
-  const matches = [...text.matchAll(franjaRegex)];
+  const allMatches = [...text.matchAll(franjaRegex)];
+  // Filtrem els que no corresponen a cap franja real del centre
+  const matches = allMatches.filter(m => horaTagAFranja(m[1].trim()) !== null);
 
   if (matches.length === 0) {
-    // Cap patró d'hora — tot és tasca general
     return { general: text, perFranja: {} };
   }
 
-  // Construïm els segments
   const perFranja = {};
   let general = '';
 
-  // Primer segment (abans del primer match) → tasca general
+  // Text abans del primer match → tasca general
   if (matches[0].index > 0) {
     const prev = text.substring(0, matches[0].index).trim().replace(/[;,.\s]+$/, '');
     if (prev) general = prev;
@@ -1269,14 +1272,9 @@ function parsearTasques(observacions) {
     const start = m.index + m[0].length;
     const end = i < matches.length - 1 ? matches[i + 1].index : text.length;
     const tasca = text.substring(start, end).trim().replace(/[;,]+$/, '').trim();
-
     if (!tasca) continue;
-
-    // Convertim el "tag" d'hora a la franja canònica
     const franja = horaTagAFranja(horaTag);
-    if (franja) {
-      perFranja[franja] = tasca;
-    }
+    if (franja) perFranja[franja] = tasca;
   }
 
   return { general, perFranja };
@@ -1884,20 +1882,23 @@ function buildPrintHTML() {
       </thead>
       <tbody>`;
 
-    // Tots els professors del cuadrant d'aquesta franja apareixen SEMPRE.
-    // Si estan absents → "(no fa guàrdia)". Si no → apareixen normal.
+    // Guards absents: apareixen NOMÉS a la columna de guàrdia amb "(no fa guàrdia)".
+    // Els traiem d'absenciesFranja perquè no apareguin també com a absents.
     const guardiesAbsents    = guardiesFranja.filter(g => estaAbsent(g, valids));
+    const nomGuardiesAbsents = new Set(guardiesAbsents.map(g => g.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')));
+    const absenciesFranjaNet = absenciesFranja.filter(a => {
+      const nomNorm = a._nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      return !guardiesAbsents.some(g => nomsCoincideixen(g, a._nom));
+    });
     const guardiesDisponibles = guardiesFranja.filter(g => !estaAbsent(g, valids));
 
-    // Columna esquerra: absències a cobrir
-    // Columna dreta:   TOTS els guards del cuadrant (disponibles normal, absents amb "(no fa guàrdia)")
-    const numFiles = Math.max(absenciesFranja.length, guardiesFranja.length);
+    // Files: el màxim entre absències netes i total de guards (disponibles + absents)
+    const numFiles = Math.max(absenciesFranjaNet.length, guardiesFranja.length);
 
     for (let i = 0; i < numFiles; i++) {
-      const abs     = absenciesFranja[i] || null;
-      const guardia = guardiesFranja[i]  || null;
+      const abs     = absenciesFranjaNet[i] || null;
+      const guardia = guardiesFranja[i]     || null;
 
-      // Columna esquerra (absent)
       let nomAbsent = '', grup = '', aula = '', tasques = '';
       if (abs) {
         nomAbsent = nomCurt(abs._nom);
@@ -1915,11 +1916,9 @@ function buildPrintHTML() {
         tasques = tascaResult.text || '';
       }
 
-      // Columna dreta (guàrdia): sempre apareix, absent o no
       let guardiaCell = '';
       if (guardia) {
-        const estaAbsentGuardia = estaAbsent(guardia, valids);
-        if (estaAbsentGuardia) {
+        if (estaAbsent(guardia, valids)) {
           guardiaCell = `${escapeHtml(nomCurt(guardia))} <span style="font-weight:normal;font-style:italic;">(no fa guàrdia)</span>`;
         } else {
           guardiaCell = escapeHtml(nomCurt(guardia));
