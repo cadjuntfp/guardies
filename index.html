@@ -772,29 +772,29 @@
   @media print {
     @page {
       size: A3 landscape;
-      margin: 8mm;
+      margin: 5mm 6mm;
     }
 
     body > *:not(#printArea) { display: none !important; }
     #printArea {
       display: block !important;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif;
       color: black;
-      font-size: 11px;
+      font-size: 9px;
     }
   }
 
   /* Vista prèvia en pantalla del PDF */
   .preview-mode #printArea {
     display: block;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif;
     color: black;
     background: white;
-    padding: 20mm 15mm;
+    padding: 10mm 8mm;
     max-width: 1400px;
     margin: 20px auto;
     box-shadow: 0 2px 20px rgba(0,0,0,0.15);
-    font-size: 11px;
+    font-size: 9px;
   }
 
   .preview-mode .container { display: none; }
@@ -836,26 +836,36 @@
 
   /* Estructura de la plantilla impresa */
   #printArea .doc-title {
-    font-size: 16px;
+    font-size: 13px;
     font-weight: bold;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
     border-bottom: 2px solid black;
     letter-spacing: 1px;
   }
 
   #printArea .session-block {
-    margin-bottom: 6px;
+    margin-bottom: 3px;
   }
 
   #printArea .session-label {
     background: #333;
     color: white;
-    padding: 4px 10px;
+    padding: 2px 8px;
     font-weight: bold;
-    font-family: 'Courier New', monospace;
-    letter-spacing: 1px;
-    font-size: 11px;
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Helvetica, sans-serif;
+    letter-spacing: 0.3px;
+    font-size: 9px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #printArea .session-num {
+    font-size: 8px;
+    font-weight: 500;
+    opacity: 0.75;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
   }
 
   #printArea table {
@@ -867,18 +877,18 @@
   #printArea table th,
   #printArea table td {
     border: 1px solid black;
-    padding: 4px 6px;
+    padding: 2px 4px;
     vertical-align: middle;
-    font-size: 11px;
+    font-size: 9px;
     overflow: hidden;
   }
 
   #printArea table thead th {
     background: #d9d9d9;
     text-transform: uppercase;
-    font-size: 10px;
+    font-size: 8px;
     text-align: center;
-    padding: 5px 4px;
+    padding: 3px 3px;
   }
 
   #printArea td.absent-cell { font-weight: bold; }
@@ -891,26 +901,27 @@
     font-size: 10px;
   }
   #printArea td.guard-cell { font-weight: bold; }
-  #printArea td.signature-cell { width: 80px; }
+  #printArea td.signature-cell { width: 55px; }
+  #printArea td.tasks-cell { font-size: 8px; }
 
   #printArea .footer-sections {
-    margin-top: 10px;
+    margin-top: 4px;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 6px;
+    gap: 4px;
   }
 
   #printArea .footer-box {
     border: 1px solid black;
-    padding: 6px 8px;
-    min-height: 40px;
+    padding: 3px 6px;
+    min-height: 22px;
   }
 
   #printArea .footer-box-title {
     font-weight: bold;
-    font-size: 10px;
+    font-size: 8px;
     text-transform: uppercase;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }
 
   /* Amplades de columnes */
@@ -969,7 +980,6 @@
         <div class="modal-subtitle">Les credencials es desen al teu navegador</div>
       </div>
       <div class="modal-body">
-        <div id="configStatus" style="font-size:12px;margin-bottom:14px;"></div>
         <div class="field">
           <label for="apiUrlModal">URL de l'API</label>
           <input type="text" id="apiUrlModal" placeholder="https://script.google.com/macros/s/.../exec">
@@ -977,13 +987,12 @@
         <div class="field">
           <label for="apiTokenModal">Token secret</label>
           <input type="password" id="apiTokenModal" placeholder="Token definit al codi Apps Script">
-          <div class="help-text">Es desa localment en aquest navegador.</div>
+          <div class="help-text">Mai no surt d'aquest dispositiu.</div>
         </div>
-        <button id="disconnectBtn" class="btn" style="display:none;width:100%;margin-top:8px;color:var(--error);border-color:var(--error);" onclick="disconnectConfig()">Tornar a la configuració per defecte</button>
       </div>
       <div class="modal-footer">
         <button class="btn" onclick="closeConfigModal()">Cancel·lar</button>
-        <button class="btn btn-primary" onclick="saveConfigModal()">Connectar a nou Sheet</button>
+        <button class="btn btn-primary" onclick="saveConfigModal()">Desa</button>
       </div>
     </div>
   </div>
@@ -1035,35 +1044,26 @@ const SESSIONS = [
   { num: 7, start: '14:05', end: '15:00', franja: '14:05 - 15:00' }
 ];
 
-// Configuració per defecte (hardcodejada)
-const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzIEbnY0du0PFUfG41WEXsPbqeOKh2H07xLkfHQHD1qPRK7vzISoAwg9sWSXTCB1rC0/exec';
-const DEFAULT_TOKEN = 'absenciesguardia2026';
-
 const PATRONS_IGNORAR = [
-  /s['’]han fet canvis/i,
-  /no s['’]ha de cobrir/i,
+  /s[\'\u2019]han fet canvis/i,
+  /no s[\'\u2019]ha de cobrir/i,
   /ja est[àa] cobert/i,
   /ja cobert/i,
   /classes cobertes/i
 ];
 
 // ==== Config ====
-function getApiUrl() {
-  return localStorage.getItem('guardies_apiUrl') || DEFAULT_API_URL;
-}
-
-function getToken() {
-  return localStorage.getItem('guardies_apiToken') || DEFAULT_TOKEN;
-}
-
-function isCustomConfig() {
-  return !!(localStorage.getItem('guardies_apiUrl') || localStorage.getItem('guardies_apiToken'));
-}
-
 function loadConfig() {
-  // Sempre mostrem la pantalla principal — la configuració per defecte ja funciona
-  document.getElementById('onboardingScreen').style.display = 'none';
-  document.getElementById('mainScreen').style.display = 'block';
+  const url = localStorage.getItem('guardies_apiUrl') || '';
+  const token = localStorage.getItem('guardies_apiToken') || '';
+  const isConfigured = url && token;
+
+  document.getElementById('onboardingScreen').style.display = isConfigured ? 'none' : 'block';
+  document.getElementById('mainScreen').style.display = isConfigured ? 'block' : 'none';
+
+  // Omplir els camps de l'onboarding (per si l'usuari vol corregir-los)
+  document.getElementById('apiUrl').value = url;
+  document.getElementById('apiToken').value = token;
 }
 
 function saveConfig() {
@@ -1080,13 +1080,6 @@ function saveConfig() {
 function showConfigPanel() {
   document.getElementById('apiUrlModal').value = localStorage.getItem('guardies_apiUrl') || '';
   document.getElementById('apiTokenModal').value = localStorage.getItem('guardies_apiToken') || '';
-  // Mostrem si s'està usant config personalitzada o la per defecte
-  const custom = isCustomConfig();
-  document.getElementById('configStatus').textContent = custom
-    ? 'Usant configuració personalitzada'
-    : 'Usant configuració per defecte';
-  document.getElementById('configStatus').style.color = custom ? 'var(--accent)' : 'var(--text-muted)';
-  document.getElementById('disconnectBtn').style.display = custom ? 'block' : 'none';
   document.getElementById('configModal').classList.add('active');
 }
 
@@ -1102,15 +1095,6 @@ function saveConfigModal() {
   localStorage.setItem('guardies_apiToken', token);
   clearError();
   closeConfigModal();
-  loadToday();
-}
-
-function disconnectConfig() {
-  if (!confirm("Vols tornar a la configuració per defecte? S'esborraran les credencials personalitzades.")) return;
-  localStorage.removeItem('guardies_apiUrl');
-  localStorage.removeItem('guardies_apiToken');
-  closeConfigModal();
-  loadToday();
 }
 
 function updateConfigBadge() {
@@ -1163,8 +1147,8 @@ function resetUIState() {
 
 // ==== Petició a l'API ====
 async function apiRequest(params) {
-  const url = getApiUrl();
-  const token = getToken();
+  const url = localStorage.getItem('guardies_apiUrl');
+  const token = localStorage.getItem('guardies_apiToken');
 
   const qs = Object.entries({ ...params, token })
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
@@ -1407,14 +1391,14 @@ function loadToday() {
 
 async function loadData() {
   clearError();
-  const url = getApiUrl();
-  const token = getToken();
+  const url = localStorage.getItem('guardies_apiUrl');
+  const token = localStorage.getItem('guardies_apiToken');
   if (!url || !token) {
-    showError('Error de configuració interna.');
+    showError('Primer has de configurar la URL i el token de l\'API.');
+    document.getElementById('onboardingScreen').style.display = 'block';
+    document.getElementById('mainScreen').style.display = 'none';
     return;
   }
-
-
 
   const date = document.getElementById('dateSelector').value;
   if (!date) return showError('Tria una data.');
@@ -1874,13 +1858,19 @@ function buildPrintHTML() {
     // (ex: 14:05-15:00 si aquell dia no hi ha cap professor assignat)
     if (guardiesFranja.length === 0) return;
 
-    // Filtrem les absències que jefatura ha marcat com a "no cal cobrir" (X)
+    // Filtrem: només absències d'aquesta franja + que el professor tingui sessió a HORARIS
+    const teProfessorHorariPDF = (abs) => {
+      const sessionsHorari = horariSessions.filter(s2 => nomsCoincideixen(s2.professor, abs._nom));
+      if (sessionsHorari.length === 0) return true; // sense horari: mostrem sempre
+      return sessionsHorari.some(s2 => s2.franja === s.franja);
+    };
     const absenciesFranja = valids
       .filter(a => a._sessions.some(sess => sess.num === s.num))
+      .filter(a => teProfessorHorariPDF(a))
       .filter(a => !guardiesEsborrades.has(makeKey(s.franja, a._nom, '')));
 
     html += `<div class="session-block">`;
-    html += `<div class="session-label">${escapeHtml(s.start)} – ${escapeHtml(s.end)}</div>`;
+    html += `<div class="session-label"><span class="session-num">${s.num}a franja</span>${escapeHtml(s.start)} – ${escapeHtml(s.end)}</div>`;
     html += `<table>
       <thead>
         <tr>
@@ -1894,14 +1884,18 @@ function buildPrintHTML() {
       </thead>
       <tbody>`;
 
-    // SEMPRE generem una fila per cada professor de guàrdia del cuadrant.
-    // Si hi ha absència que li toca cobrir, omplim les seves dades.
-    // Si no, la fila queda buida (excepte el nom del professor de guàrdia).
-    guardiesFranja.forEach((guardia, i) => {
-      const abs = absenciesFranja[i]; // assignació per ordre
+    // Separem guards disponibles (no absents) dels que tenen guàrdia però estan absents
+    const guardiesAbsents = guardiesFranja.filter(g => estaAbsent(g, valids));
+    const guardiesDisponibles = guardiesFranja.filter(g => !estaAbsent(g, valids));
+
+    // Calculem el nombre màxim de files: el major entre absències a cobrir i guards disponibles
+    const numFiles = Math.max(absenciesFranja.length, guardiesDisponibles.length);
+
+    for (let i = 0; i < numFiles; i++) {
+      const abs = absenciesFranja[i] || null;
+      const guardia = guardiesDisponibles[i] || null;
 
       let nomAbsent = '', grup = '', aula = '', tasques = '';
-
       if (abs) {
         nomAbsent = nomCurt(abs._nom);
         const classe = trobarClasse(horariSessions, abs._nom, s.franja);
@@ -1914,49 +1908,44 @@ function buildPrintHTML() {
             grup = `(${classe.grup} fora)`;
           }
         }
-        // Tasca específica per a aquesta franja (parsejada o editada)
         const tascaResult = obtenirTasca(abs, s.franja);
         tasques = tascaResult.text || '';
       }
 
+      const guardiaCell = guardia ? escapeHtml(nomCurt(guardia)) : '';
       html += `<tr>
         <td class="absent-cell">${escapeHtml(nomAbsent)}</td>
         <td class="group-cell">${escapeHtml(grup)}</td>
         <td class="room-cell">${escapeHtml(aula)}</td>
         <td class="tasks-cell">${escapeHtml(tasques)}</td>
-        <td class="guard-cell">${escapeHtml(nomCurt(guardia))}</td>
+        <td class="guard-cell">${guardiaCell}</td>
+        <td class="signature-cell"></td>
+      </tr>`;
+    }
+
+    // Professors de guàrdia absents: apareixen com a absent normal
+    // però a la columna de guàrdia surt el seu nom + "(no fa guàrdia)"
+    guardiesAbsents.forEach(g => {
+      const absGuard = estaAbsent(g, valids);
+      const classeGuard = absGuard ? trobarClasse(horariSessions, g, s.franja) : null;
+      let grupG = '', aulaG = '', tasquesG = '';
+      if (classeGuard && (classeGuard.tipus === 'LECTIVA' || classeGuard.tipus === 'TUTORIA_GRUP')) {
+        grupG = classeGuard.grup || '';
+        aulaG = classeGuard.aula || '';
+      }
+      if (absGuard) {
+        const tascaG = obtenirTasca(absGuard, s.franja);
+        tasquesG = tascaG.text || '';
+      }
+      html += `<tr>
+        <td class="absent-cell">${escapeHtml(nomCurt(g))}</td>
+        <td class="group-cell">${escapeHtml(grupG)}</td>
+        <td class="room-cell">${escapeHtml(aulaG)}</td>
+        <td class="tasks-cell">${escapeHtml(tasquesG)}</td>
+        <td class="guard-cell">${escapeHtml(nomCurt(g))} <span style="font-weight:normal;font-style:italic;">(no fa guàrdia)</span></td>
         <td class="signature-cell"></td>
       </tr>`;
     });
-
-    // Si hi ha MÉS absències que professors de guàrdia, les afegim com a files
-    // extra al final (queden marcades, jefatura ho resoldrà manualment)
-    if (absenciesFranja.length > guardiesFranja.length) {
-      for (let i = guardiesFranja.length; i < absenciesFranja.length; i++) {
-        const abs = absenciesFranja[i];
-        const nomAbsent = nomCurt(abs._nom);
-        const classe = trobarClasse(horariSessions, abs._nom, s.franja);
-        let grup = '', aula = '';
-        if (classe && (classe.tipus === 'LECTIVA' || classe.tipus === 'TUTORIA_GRUP')) {
-          const grupForaDetectat = classeGrupFora(classe.grup, s.num, grupsFora);
-          if (!grupForaDetectat) {
-            grup = classe.grup || '';
-            aula = classe.aula || '';
-          } else {
-            grup = `(${classe.grup} fora)`;
-          }
-        }
-        const tascaResultExtra = obtenirTasca(abs, s.franja);
-        html += `<tr>
-          <td class="absent-cell">${escapeHtml(nomAbsent)}</td>
-          <td class="group-cell">${escapeHtml(grup)}</td>
-          <td class="room-cell">${escapeHtml(aula)}</td>
-          <td class="tasks-cell">${escapeHtml(tascaResultExtra.text || '')}</td>
-          <td class="guard-cell"></td>
-          <td class="signature-cell"></td>
-        </tr>`;
-      }
-    }
 
     html += `</tbody></table></div>`;
   });
@@ -1996,11 +1985,11 @@ function closePreview() {
 // ==== Init ====
 loadConfig();
 
-// Sempre tenim configuració (per defecte o personalitzada)
-loadToday();
-
-
-
+if (localStorage.getItem('guardies_apiUrl') && localStorage.getItem('guardies_apiToken')) {
+  loadToday();
+} else {
+  document.getElementById('dateSelector').value = new Date().toISOString().split('T')[0];
+}
 
 // Tancar el modal de configuració amb Esc o clicant el fons
 document.getElementById('configModal').addEventListener('click', (e) => {
