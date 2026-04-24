@@ -455,6 +455,52 @@
 
   .sortida-banner strong { font-weight: 600; }
 
+  /* Onboarding */
+  .onboarding-card {
+    max-width: 420px;
+    margin: 40px auto 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 36px 32px;
+    text-align: center;
+  }
+
+  .onboarding-icon {
+    font-size: 36px;
+    margin-bottom: 16px;
+  }
+
+  .onboarding-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .onboarding-desc {
+    font-size: 14px;
+    color: var(--text-soft);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .onboarding-card .field {
+    text-align: left;
+  }
+
+  .btn-full {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+
+  .btn-icon {
+    padding: 8px 10px;
+    font-size: 15px;
+  }
+
   @media (max-width: 640px) {
     .franja-content { grid-template-columns: 1fr; }
   }
@@ -885,30 +931,61 @@
     <div class="subtitle">IES Josep Miquel Guàrdia</div>
   </header>
 
-  <details id="configDetails" open>
-    <summary>
-      Configuració
-      <span class="badge" id="configBadge">Pendent</span>
-    </summary>
-    <div class="details-content">
+  <!-- Pantalla d'onboarding (visible només si no hi ha configuració) -->
+  <div id="onboardingScreen" style="display:none;">
+    <div class="onboarding-card">
+      <div class="onboarding-icon">🔑</div>
+      <h2 class="onboarding-title">Configura la connexió</h2>
+      <p class="onboarding-desc">Introdueix les credencials una sola vegada. Es desaran al teu navegador i no caldrà tornar-les a posar.</p>
       <div class="field">
         <label for="apiUrl">URL de l'API</label>
         <input type="text" id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec">
       </div>
       <div class="field">
         <label for="apiToken">Token secret</label>
-        <input type="password" id="apiToken" placeholder="El token definit al codi de l'Apps Script">
-        <div class="help-text">Es desa al teu navegador. Mai no surt d'aquest dispositiu.</div>
+        <input type="password" id="apiToken" placeholder="Token definit al codi Apps Script">
+        <div class="help-text">Es desa localment al teu navegador. Mai no surt d'aquest dispositiu.</div>
       </div>
-      <button class="btn btn-primary" onclick="saveConfig()">Desa la configuració</button>
+      <button class="btn btn-primary btn-full" onclick="saveConfig()">Connectar</button>
     </div>
-  </details>
+  </div>
 
-  <div class="toolbar">
-    <input type="date" id="dateSelector">
-    <button class="btn btn-primary" id="loadBtn" onclick="loadData()">Carrega dia</button>
-    <button class="btn" onclick="loadToday()">Avui</button>
-    <button class="btn" id="pdfBtn" onclick="openPreview()" disabled style="margin-left: auto;">Generar PDF</button>
+  <!-- Contingut principal (visible quan hi ha configuració) -->
+  <div id="mainScreen" style="display:none;">
+    <div class="toolbar">
+      <input type="date" id="dateSelector">
+      <button class="btn btn-primary" id="loadBtn" onclick="loadData()">Carrega dia</button>
+      <button class="btn" onclick="loadToday()">Avui</button>
+      <button class="btn" id="pdfBtn" onclick="openPreview()" disabled style="margin-left: auto;">Generar PDF</button>
+      <button class="btn btn-icon" onclick="showConfigPanel()" title="Configuració">⚙️</button>
+    </div>
+  </div>
+
+  <!-- Panel de configuració (modal, accessible des de l'engranatge) -->
+  <div class="modal-backdrop" id="configModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Configuració de connexió</h3>
+        <div class="modal-subtitle">Les credencials es desen al teu navegador</div>
+      </div>
+      <div class="modal-body">
+        <div id="configStatus" style="font-size:12px;margin-bottom:14px;"></div>
+        <div class="field">
+          <label for="apiUrlModal">URL de l'API</label>
+          <input type="text" id="apiUrlModal" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <div class="field">
+          <label for="apiTokenModal">Token secret</label>
+          <input type="password" id="apiTokenModal" placeholder="Token definit al codi Apps Script">
+          <div class="help-text">Es desa localment en aquest navegador.</div>
+        </div>
+        <button id="disconnectBtn" class="btn" style="display:none;width:100%;margin-top:8px;color:var(--error);border-color:var(--error);" onclick="disconnectConfig()">Tornar a la configuració per defecte</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeConfigModal()">Cancel·lar</button>
+        <button class="btn btn-primary" onclick="saveConfigModal()">Connectar a nou Sheet</button>
+      </div>
+    </div>
   </div>
 
   <div id="errorArea"></div>
@@ -958,19 +1035,35 @@ const SESSIONS = [
   { num: 7, start: '14:05', end: '15:00', franja: '14:05 - 15:00' }
 ];
 
+// Configuració per defecte (hardcodejada)
+const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzIEbnY0du0PFUfG41WEXsPbqeOKh2H07xLkfHQHD1qPRK7vzISoAwg9sWSXTCB1rC0/exec';
+const DEFAULT_TOKEN = 'absenciesguardia2026';
+
 const PATRONS_IGNORAR = [
-  /s[\'\u2019]han fet canvis/i,
-  /no s[\'\u2019]ha de cobrir/i,
+  /s['’]han fet canvis/i,
+  /no s['’]ha de cobrir/i,
   /ja est[àa] cobert/i,
   /ja cobert/i,
   /classes cobertes/i
 ];
 
 // ==== Config ====
+function getApiUrl() {
+  return localStorage.getItem('guardies_apiUrl') || DEFAULT_API_URL;
+}
+
+function getToken() {
+  return localStorage.getItem('guardies_apiToken') || DEFAULT_TOKEN;
+}
+
+function isCustomConfig() {
+  return !!(localStorage.getItem('guardies_apiUrl') || localStorage.getItem('guardies_apiToken'));
+}
+
 function loadConfig() {
-  document.getElementById('apiUrl').value = localStorage.getItem('guardies_apiUrl') || '';
-  document.getElementById('apiToken').value = localStorage.getItem('guardies_apiToken') || '';
-  updateConfigBadge();
+  // Sempre mostrem la pantalla principal — la configuració per defecte ja funciona
+  document.getElementById('onboardingScreen').style.display = 'none';
+  document.getElementById('mainScreen').style.display = 'block';
 }
 
 function saveConfig() {
@@ -980,16 +1073,48 @@ function saveConfig() {
   localStorage.setItem('guardies_apiUrl', url);
   localStorage.setItem('guardies_apiToken', token);
   clearError();
-  updateConfigBadge();
-  document.getElementById('configDetails').open = false;
+  loadConfig(); // actualitza la vista (mostra mainScreen)
+  loadToday();
+}
+
+function showConfigPanel() {
+  document.getElementById('apiUrlModal').value = localStorage.getItem('guardies_apiUrl') || '';
+  document.getElementById('apiTokenModal').value = localStorage.getItem('guardies_apiToken') || '';
+  // Mostrem si s'està usant config personalitzada o la per defecte
+  const custom = isCustomConfig();
+  document.getElementById('configStatus').textContent = custom
+    ? 'Usant configuració personalitzada'
+    : 'Usant configuració per defecte';
+  document.getElementById('configStatus').style.color = custom ? 'var(--accent)' : 'var(--text-muted)';
+  document.getElementById('disconnectBtn').style.display = custom ? 'block' : 'none';
+  document.getElementById('configModal').classList.add('active');
+}
+
+function closeConfigModal() {
+  document.getElementById('configModal').classList.remove('active');
+}
+
+function saveConfigModal() {
+  const url = document.getElementById('apiUrlModal').value.trim();
+  const token = document.getElementById('apiTokenModal').value.trim();
+  if (!url || !token) return showError('Cal omplir tant la URL com el token');
+  localStorage.setItem('guardies_apiUrl', url);
+  localStorage.setItem('guardies_apiToken', token);
+  clearError();
+  closeConfigModal();
+  loadToday();
+}
+
+function disconnectConfig() {
+  if (!confirm("Vols tornar a la configuració per defecte? S'esborraran les credencials personalitzades.")) return;
+  localStorage.removeItem('guardies_apiUrl');
+  localStorage.removeItem('guardies_apiToken');
+  closeConfigModal();
   loadToday();
 }
 
 function updateConfigBadge() {
-  const badge = document.getElementById('configBadge');
-  const ok = localStorage.getItem('guardies_apiUrl') && localStorage.getItem('guardies_apiToken');
-  badge.textContent = ok ? 'Configurat' : 'Pendent';
-  badge.className = ok ? 'badge badge-ok' : 'badge badge-warn';
+  // Ja no hi ha badge, però mantenim la funció per compatibilitat
 }
 
 // ==== Missatges ====
@@ -1038,8 +1163,8 @@ function resetUIState() {
 
 // ==== Petició a l'API ====
 async function apiRequest(params) {
-  const url = localStorage.getItem('guardies_apiUrl');
-  const token = localStorage.getItem('guardies_apiToken');
+  const url = getApiUrl();
+  const token = getToken();
 
   const qs = Object.entries({ ...params, token })
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
@@ -1282,13 +1407,14 @@ function loadToday() {
 
 async function loadData() {
   clearError();
-  const url = localStorage.getItem('guardies_apiUrl');
-  const token = localStorage.getItem('guardies_apiToken');
+  const url = getApiUrl();
+  const token = getToken();
   if (!url || !token) {
-    showError('Primer has de configurar la URL i el token de l\'API.');
-    document.getElementById('configDetails').open = true;
+    showError('Error de configuració interna.');
     return;
   }
+
+
 
   const date = document.getElementById('dateSelector').value;
   if (!date) return showError('Tria una data.');
@@ -1870,12 +1996,16 @@ function closePreview() {
 // ==== Init ====
 loadConfig();
 
-if (localStorage.getItem('guardies_apiUrl') && localStorage.getItem('guardies_apiToken')) {
-  document.getElementById('configDetails').open = false;
-  loadToday();
-} else {
-  document.getElementById('dateSelector').value = new Date().toISOString().split('T')[0];
-}
+// Sempre tenim configuració (per defecte o personalitzada)
+loadToday();
+
+
+
+
+// Tancar el modal de configuració amb Esc o clicant el fons
+document.getElementById('configModal').addEventListener('click', (e) => {
+  if (e.target.id === 'configModal') closeConfigModal();
+});
 
 </script>
 
