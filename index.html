@@ -813,26 +813,21 @@
     letter-spacing: 1px; text-align: center;
   }
 
-  /* Franja vertical esquerra */
+  /* Franja horitzontal (fila grisa sobre la taula) */
   #printArea .session-block {
     margin-bottom: 2px;
-    display: grid;
-    grid-template-columns: 28px 1fr;
-    border: 1px solid black;
   }
 
   #printArea .session-label {
     background: #c0c0c0; color: black;
-    writing-mode: vertical-rl; text-orientation: mixed;
-    transform: rotate(180deg);
-    padding: 4px 3px; font-weight: bold;
-    font-family: Arial, Helvetica, sans-serif; font-size: 8px;
-    display: flex; align-items: center; justify-content: center;
-    border-right: 1px solid black; white-space: nowrap; gap: 4px;
+    padding: 2px 6px; font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif; font-size: 8.5px;
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid black; border-bottom: none;
   }
 
   #printArea .session-num {
-    font-size: 7px; font-weight: 400;
+    font-size: 7.5px; font-weight: 400;
     opacity: 0.75; text-transform: uppercase;
   }
 
@@ -1610,8 +1605,9 @@ function renderAll(absData, guardData, horData, date) {
       a._sessions.some(sess => sess.num === s.num) && teProfessorHorari(a)
     );
     const guardiesFranja = guardies[s.franja] || [];
+    const guardiesManualsFranja = guardiesManuals.filter(g => g.franja === s.franja);
 
-    if (absenciesFranja.length === 0 && guardiesFranja.length === 0) return;
+    if (absenciesFranja.length === 0 && guardiesFranja.length === 0 && guardiesManualsFranja.length === 0) return;
 
     const hasAbsences = absenciesFranja.length > 0;
 
@@ -1636,9 +1632,15 @@ function renderAll(absData, guardData, horData, date) {
         return escapeHtml(g);
       }).join(', ') || '—';
 
+      const manualsHTML = guardiesManualsFranja.map(g =>
+        `<span style="color:var(--accent);font-weight:600;">${escapeHtml(g.nom)}</span>` +
+        ` <button class="guardia-card-btn remove" style="vertical-align:middle;" title="Eliminar" onclick="eliminarGuardiaManual('${escapeJs(s.franja)}','${escapeJs(g.nom)}')">×</button>`
+      ).join(', ');
+
       html += `
         <div class="franja-content">
-          Professors de guàrdia: ${guardiesHTML}
+          <div>Professors de guàrdia: ${guardiesHTML}${manualsHTML ? ', ' + manualsHTML : ''}</div>
+          <button class="btn-add-guardia" onclick="afegirGuardiaManual('${escapeJs(s.franja)}')">+ Afegir guàrdia</button>
         </div>
       </div>
       `;
@@ -1741,7 +1743,6 @@ function renderAll(absData, guardData, horData, date) {
       guardiesFranja.forEach(g => {
         const absGuardia = estaAbsent(g, valids);
         if (absGuardia) {
-          // Comprovem si tenia GUARDIA assignada en aquesta franja concreta
           const classeGuardia = trobarClasse(horariSessions, g, s.franja);
           const teGuardiaFranja = classeGuardia && classeGuardia.tipus === 'GUARDIA';
           if (teGuardiaFranja) {
@@ -1753,7 +1754,19 @@ function renderAll(absData, guardData, horData, date) {
           html += `<li class="guard-entry">${escapeHtml(g)}</li>`;
         }
       });
+      guardiesManualsFranja.forEach(g => {
+        html += `<li class="guard-entry" style="color:var(--accent);">
+          ${escapeHtml(g.nom)}
+          <span style="font-size:11px;color:var(--accent);">(afegit)</span>
+          <button class="guardia-card-btn remove" style="margin-left:4px;" onclick="eliminarGuardiaManual('${escapeJs(s.franja)}','${escapeJs(g.nom)}')">×</button>
+        </li>`;
+      });
     }
+
+    // Botó afegir guàrdia manual
+    html += `<li style="list-style:none;padding-top:6px;">
+      <button class="btn-add-guardia" onclick="afegirGuardiaManual('${escapeJs(s.franja)}')">+ Afegir guàrdia</button>
+    </li>`;
 
     html += `</ul></div></div></div>`;
   });
@@ -1873,11 +1886,18 @@ function buildPrintHTML() {
 
     // Tots els guards (cuadrant + manuals)
     const totsGuards = [...guardiesFranja, ...guardiesManualsFranja.map(g => g.nom)];
-    const numFiles   = Math.max(absenciesFranjaNet.length, totsGuards.length);
+
+    // Files fixes: 5 per franja, 4 per a l'última (s.num === 6 o 7)
+    const isUltimaFranja = (s.num >= 6);
+    const filesFixes = isUltimaFranja ? 4 : 5;
+    const numFiles = Math.max(filesFixes, absenciesFranjaNet.length, totsGuards.length);
 
     html += '<div class="session-block">';
-    html += '<div class="session-label"><span class="session-num">' + s.num + 'a</span>' + escapeHtml(s.start) + '–' + escapeHtml(s.end) + '</div>';
-    html += '<div class="session-content"><table>';
+    html += '<div class="session-label">';
+    html += '<span class="session-num">' + s.num + 'a FRANJA</span>';
+    html += '<strong>' + escapeHtml(s.start) + ' – ' + escapeHtml(s.end) + '</strong>';
+    html += '</div>';
+    html += '<table>';
     html += '<thead><tr>';
     html += '<th class="col-absent">Professorat absent</th>';
     html += '<th class="col-group">Grup</th>';
@@ -1921,7 +1941,7 @@ function buildPrintHTML() {
       html += '</tr>';
     }
 
-    html += '</tbody></table></div></div>';
+    html += '</tbody></table></div>';
   });
 
   const obsText = observacionsSortides.join(' · ');
