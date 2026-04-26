@@ -772,29 +772,29 @@
   @media print {
     @page {
       size: A3 landscape;
-      margin: 5mm 6mm;
+      margin: 3mm 3mm;
     }
 
     body > *:not(#printArea) { display: none !important; }
     #printArea {
       display: block !important;
-      font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       color: black;
-      font-size: 9px;
+      font-size: 8.5px;
     }
   }
 
   /* Vista prèvia en pantalla del PDF */
   .preview-mode #printArea {
     display: block;
-    font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     color: black;
     background: white;
-    padding: 10mm 8mm;
+    padding: 4mm 4mm;
     max-width: 1400px;
     margin: 20px auto;
     box-shadow: 0 2px 20px rgba(0,0,0,0.15);
-    font-size: 9px;
+    font-size: 8.5px;
   }
 
   .preview-mode .container { display: none; }
@@ -836,12 +836,13 @@
 
   /* Estructura de la plantilla impresa */
   #printArea .doc-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
     margin-bottom: 4px;
     padding-bottom: 3px;
     border-bottom: 2px solid black;
     letter-spacing: 1px;
+    text-align: center;
   }
 
   #printArea .session-block {
@@ -849,21 +850,22 @@
   }
 
   #printArea .session-label {
-    background: #333;
-    color: white;
+    background: #bbbbbb;
+    color: black;
     padding: 2px 8px;
     font-weight: bold;
-    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Helvetica, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     letter-spacing: 0.3px;
-    font-size: 9px;
+    font-size: 8.5px;
     display: flex;
     align-items: center;
     gap: 10px;
   }
+
   #printArea .session-num {
-    font-size: 8px;
-    font-weight: 500;
-    opacity: 0.75;
+    font-size: 7.5px;
+    font-weight: 600;
+    opacity: 0.8;
     letter-spacing: 0.5px;
     text-transform: uppercase;
   }
@@ -879,16 +881,17 @@
     border: 1px solid black;
     padding: 2px 4px;
     vertical-align: middle;
-    font-size: 9px;
+    font-size: 8.5px;
     overflow: hidden;
   }
 
   #printArea table thead th {
-    background: #d9d9d9;
+    background: #e0e0e0;
     text-transform: uppercase;
-    font-size: 8px;
+    font-size: 7.5px;
     text-align: center;
-    padding: 3px 3px;
+    padding: 2px 3px;
+    font-weight: bold;
   }
 
   #printArea td.absent-cell { font-weight: bold; }
@@ -896,13 +899,9 @@
     font-family: 'Courier New', monospace;
     text-align: center;
   }
-  #printArea td.tasks-cell {
-    font-style: italic;
-    font-size: 10px;
-  }
   #printArea td.guard-cell { font-weight: bold; }
-  #printArea td.signature-cell { width: 55px; }
-  #printArea td.tasks-cell { font-size: 8px; }
+  #printArea td.signature-cell { }
+  #printArea td.tasks-cell { font-size: 8px; font-style: italic; }
 
   #printArea .footer-sections {
     margin-top: 4px;
@@ -919,18 +918,18 @@
 
   #printArea .footer-box-title {
     font-weight: bold;
-    font-size: 8px;
+    font-size: 7.5px;
     text-transform: uppercase;
     margin-bottom: 2px;
   }
 
   /* Amplades de columnes */
-  #printArea .col-absent { width: 16%; }
-  #printArea .col-group { width: 9%; }
-  #printArea .col-room { width: 13%; }
-  #printArea .col-tasks { width: 24%; }
-  #printArea .col-guard { width: 16%; }
-  #printArea .col-signature { width: 12%; }
+  #printArea .col-absent  { width: 15%; }
+  #printArea .col-group   { width: 8%; }
+  #printArea .col-room    { width: 12%; }
+  #printArea .col-tasks   { width: 26%; }
+  #printArea .col-guard   { width: 15%; }
+  #printArea .col-signature { width: 10%; }
 </style>
 </head>
 <body>
@@ -1239,28 +1238,25 @@ function parsearTasques(observacions) {
   if (!observacions) return { general: '', perFranja: {} };
   const text = observacions.trim();
 
-  // Una marca de franja NOMÉS és vàlida si va precedida de:
-  //   - inici del text (^)
-  //   - punt i coma (;)
-  //   - salt de línia (\n)
-  // Això evita falsos positius com "Ex. 8 pàg. 50" on el número apareix
-  // enmig d'un text normal i no indica cap franja horària.
-  //
-  // Formats acceptats: HH:MM · HH.MM · HHh · "Na hora" / "Nª hora"
-  const franjaRegex = /(?:^|[;\n])\s*(\d{1,2}:\d{2}|\d{1,2}\.\d{2}|\d{1,2}\s*h\b|\d+[aª]\s+hora\b|\d+\s+hora\b)\s*[-–:]?\s*/gim;
+  // Patrons d'inici de franja:
+  // - HH:MM (8:00, 08:00, 8.00) seguit d'espais/-/:
+  // - Hh (8h, 8 h) seguit de -/:
+  // - Na hora / Nª hora seguit de -/:
+  const franjaRegex = /(\b\d{1,2}[:.]?\d{0,2}\s*h?\b|\b\d+[aª]?\s+hora\b)\s*[-:]?\s*/gi;
 
-  const allMatches = [...text.matchAll(franjaRegex)];
-  // Filtrem els que no corresponen a cap franja real del centre
-  const matches = allMatches.filter(m => horaTagAFranja(m[1].trim()) !== null);
+  // Trobem totes les coincidències
+  const matches = [...text.matchAll(franjaRegex)];
 
   if (matches.length === 0) {
+    // Cap patró d'hora — tot és tasca general
     return { general: text, perFranja: {} };
   }
 
+  // Construïm els segments
   const perFranja = {};
   let general = '';
 
-  // Text abans del primer match → tasca general
+  // Primer segment (abans del primer match) → tasca general
   if (matches[0].index > 0) {
     const prev = text.substring(0, matches[0].index).trim().replace(/[;,.\s]+$/, '');
     if (prev) general = prev;
@@ -1272,9 +1268,14 @@ function parsearTasques(observacions) {
     const start = m.index + m[0].length;
     const end = i < matches.length - 1 ? matches[i + 1].index : text.length;
     const tasca = text.substring(start, end).trim().replace(/[;,]+$/, '').trim();
+
     if (!tasca) continue;
+
+    // Convertim el "tag" d'hora a la franja canònica
     const franja = horaTagAFranja(horaTag);
-    if (franja) perFranja[franja] = tasca;
+    if (franja) {
+      perFranja[franja] = tasca;
+    }
   }
 
   return { general, perFranja };
@@ -1844,56 +1845,61 @@ function buildPrintHTML() {
   const horariSessions = horData.sessions || [];
   const guardies = guardData.guardies || {};
 
+  // Recollim les observacions de sortides per a la secció final
+  const observacionsSortides = [];
+  valids.forEach(abs => {
+    if (abs._grupsFora.length > 0 && abs._obs) {
+      observacionsSortides.push(`${abs._grupsFora.join(', ')}: ${abs._obs}`);
+    }
+  });
+
   let html = `<div class="doc-title">${escapeHtml(dia)} ${escapeHtml(dateStr)}</div>`;
 
-  // SEMPRE recorrem totes les franges definides al cuadrant
-  // (no només les que tenen activitat). Així el full té sempre la
-  // mateixa estructura, amb totes les caselles per signar.
   SESSIONS.forEach(s => {
     const guardiesFranja = guardies[s.franja] || [];
-
-    // Saltem només les franges que no existeixen al cuadrant
-    // (ex: 14:05-15:00 si aquell dia no hi ha cap professor assignat)
     if (guardiesFranja.length === 0) return;
 
-    // Filtrem: només absències d'aquesta franja + que el professor tingui sessió a HORARIS
     const teProfessorHorariPDF = (abs) => {
       const sessionsHorari = horariSessions.filter(s2 => nomsCoincideixen(s2.professor, abs._nom));
-      if (sessionsHorari.length === 0) return true; // sense horari: mostrem sempre
+      if (sessionsHorari.length === 0) return true;
       return sessionsHorari.some(s2 => s2.franja === s.franja);
     };
+
+    // Excloem professors el grup dels quals és fora en aquesta franja
     const absenciesFranja = valids
       .filter(a => a._sessions.some(sess => sess.num === s.num))
       .filter(a => teProfessorHorariPDF(a))
-      .filter(a => !guardiesEsborrades.has(makeKey(s.franja, a._nom, '')));
+      .filter(a => !guardiesEsborrades.has(makeKey(s.franja, a._nom, '')))
+      .filter(a => {
+        // Si el professor té una classe en aquesta franja i el grup és fora, no apareix
+        const classe = trobarClasse(horariSessions, a._nom, s.franja);
+        if (!classe) return true;
+        if (classe.tipus === 'LECTIVA' || classe.tipus === 'TUTORIA_GRUP') {
+          return !classeGrupFora(classe.grup, s.num, grupsFora);
+        }
+        return true;
+      });
+
+    // Guards absents: només a la columna de guàrdia amb "(no fa guàrdia)"
+    const guardiesAbsents = guardiesFranja.filter(g => estaAbsent(g, valids));
+    // Absències netes: traiem els que ja apareixen com a guard absent
+    const absenciesFranjaNet = absenciesFranja.filter(a =>
+      !guardiesAbsents.some(g => nomsCoincideixen(g, a._nom))
+    );
+    const numFiles = Math.max(absenciesFranjaNet.length, guardiesFranja.length);
 
     html += `<div class="session-block">`;
     html += `<div class="session-label"><span class="session-num">${s.num}a franja</span>${escapeHtml(s.start)} – ${escapeHtml(s.end)}</div>`;
     html += `<table>
-      <thead>
-        <tr>
-          <th class="col-absent">Professorat absent</th>
-          <th class="col-group">Grup</th>
-          <th class="col-room">Aula</th>
-          <th class="col-tasks">Tasques</th>
-          <th class="col-guard">Professorat de guàrdia</th>
-          <th class="col-signature">Signatura</th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th class="col-absent">Professorat absent</th>
+        <th class="col-group">Grup</th>
+        <th class="col-room">Aula</th>
+        <th class="col-tasks">Tasques</th>
+        <th class="col-guard">Professorat de guàrdia</th>
+        <th class="col-signature">Signatura</th>
+      </tr></thead>
       <tbody>`;
-
-    // Guards absents: apareixen NOMÉS a la columna de guàrdia amb "(no fa guàrdia)".
-    // Els traiem d'absenciesFranja perquè no apareguin també com a absents.
-    const guardiesAbsents    = guardiesFranja.filter(g => estaAbsent(g, valids));
-    const nomGuardiesAbsents = new Set(guardiesAbsents.map(g => g.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')));
-    const absenciesFranjaNet = absenciesFranja.filter(a => {
-      const nomNorm = a._nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      return !guardiesAbsents.some(g => nomsCoincideixen(g, a._nom));
-    });
-    const guardiesDisponibles = guardiesFranja.filter(g => !estaAbsent(g, valids));
-
-    // Files: el màxim entre absències netes i total de guards (disponibles + absents)
-    const numFiles = Math.max(absenciesFranjaNet.length, guardiesFranja.length);
 
     for (let i = 0; i < numFiles; i++) {
       const abs     = absenciesFranjaNet[i] || null;
@@ -1904,13 +1910,8 @@ function buildPrintHTML() {
         nomAbsent = nomCurt(abs._nom);
         const classe = trobarClasse(horariSessions, abs._nom, s.franja);
         if (classe && (classe.tipus === 'LECTIVA' || classe.tipus === 'TUTORIA_GRUP')) {
-          const grupForaDetectat = classeGrupFora(classe.grup, s.num, grupsFora);
-          if (!grupForaDetectat) {
-            grup = classe.grup || '';
-            aula = classe.aula || '';
-          } else {
-            grup = `(${classe.grup} fora)`;
-          }
+          grup = classe.grup || '';
+          aula = classe.aula || '';
         }
         const tascaResult = obtenirTasca(abs, s.franja);
         tasques = tascaResult.text || '';
@@ -1938,7 +1939,11 @@ function buildPrintHTML() {
     html += `</tbody></table></div>`;
   });
 
-  // Seccions finals
+  // Observacions: recollim les sortides amb els seus textos del camp Observacions
+  const obsText = observacionsSortides.length > 0
+    ? observacionsSortides.join(' · ')
+    : '';
+
   html += `
     <div class="footer-sections">
       <div class="footer-box">
@@ -1948,7 +1953,7 @@ function buildPrintHTML() {
         <div class="footer-box-title">Alumnat expulsat a l'aula de convivència:</div>
       </div>
       <div class="footer-box">
-        <div class="footer-box-title">Observacions:</div>
+        <div class="footer-box-title">Observacions:${obsText ? ` <span style="font-weight:normal;text-transform:none;">${escapeHtml(obsText)}</span>` : ''}</div>
       </div>
     </div>
   `;
