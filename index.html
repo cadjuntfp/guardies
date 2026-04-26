@@ -773,18 +773,15 @@
     #printArea {
       display: block !important;
       font-family: Arial, Helvetica, sans-serif;
-      color: black;
-      font-size: 8.5px;
+      color: black; font-size: 8.5px;
     }
   }
 
   .preview-mode #printArea {
     display: block;
     font-family: Arial, Helvetica, sans-serif;
-    color: black;
-    background: white;
-    padding: 4mm 4mm;
-    max-width: 1400px;
+    color: black; background: white;
+    padding: 4mm 4mm; max-width: 1400px;
     margin: 20px auto;
     box-shadow: 0 2px 20px rgba(0,0,0,0.15);
     font-size: 8.5px;
@@ -797,8 +794,7 @@
     background: var(--text); color: white;
     padding: 10px 20px; display: flex; gap: 12px;
     align-items: center; z-index: 1000;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px;
   }
   .preview-bar { display: none; }
   .preview-mode .preview-bar { display: flex; }
@@ -826,28 +822,18 @@
   }
 
   #printArea .session-label {
-    background: #c0c0c0;
-    color: black;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
+    background: #c0c0c0; color: black;
+    writing-mode: vertical-rl; text-orientation: mixed;
     transform: rotate(180deg);
-    padding: 4px 3px;
-    font-weight: bold;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-right: 1px solid black;
-    white-space: nowrap;
-    gap: 4px;
+    padding: 4px 3px; font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif; font-size: 8px;
+    display: flex; align-items: center; justify-content: center;
+    border-right: 1px solid black; white-space: nowrap; gap: 4px;
   }
 
   #printArea .session-num {
-    font-size: 7px;
-    font-weight: 400;
-    opacity: 0.75;
-    text-transform: uppercase;
+    font-size: 7px; font-weight: 400;
+    opacity: 0.75; text-transform: uppercase;
   }
 
   #printArea .session-content { min-width: 0; }
@@ -856,8 +842,7 @@
     width: 100%; border-collapse: collapse; table-layout: fixed;
   }
 
-  #printArea table th,
-  #printArea table td {
+  #printArea table th, #printArea table td {
     border: 1px solid black; padding: 2px 4px;
     vertical-align: middle; font-size: 8.5px; overflow: hidden;
   }
@@ -868,7 +853,7 @@
     padding: 2px 3px; font-weight: bold;
   }
 
-  #printArea td.absent-cell  { font-weight: bold; }
+  #printArea td.absent-cell { font-weight: bold; }
   #printArea td.group-cell, #printArea td.room-cell {
     font-family: 'Courier New', monospace; text-align: center;
   }
@@ -889,7 +874,6 @@
     text-transform: uppercase; margin-bottom: 2px;
   }
 
-  /* Amplades de columnes */
   #printArea .col-absent    { width: 15%; }
   #printArea .col-group     { width: 8%; }
   #printArea .col-room      { width: 12%; }
@@ -897,7 +881,6 @@
   #printArea .col-guard     { width: 15%; }
   #printArea .col-signature { width: 10%; }
 
-  /* Boto afegir guardia manual */
   .btn-add-guardia {
     display: inline-flex; align-items: center; gap: 4px;
     font-size: 12px; padding: 4px 10px;
@@ -907,7 +890,7 @@
     margin-top: 8px; font-family: inherit; transition: all 0.15s;
   }
   .btn-add-guardia:hover { background: #dbeafe; border-style: solid; }
-  .guardia-card.manual { border-color: var(--accent); background: #f0f7ff; }
+
 </style>
 </head>
 <body>
@@ -1110,6 +1093,7 @@ let lastLoadedData = null;
 // tasquesEditades: Map de "franja|absentName" → tasca personalitzada
 let guardiesEsborrades = new Set();
 let tasquesEditades = new Map();
+let guardiesManuals = [];
 let editingContext = null; // {franja, absentName, defaultText}
 
 function makeKey(franja, absentName, guardiaName) {
@@ -1120,6 +1104,7 @@ function makeKey(franja, absentName, guardiaName) {
 function resetUIState() {
   guardiesEsborrades.clear();
   tasquesEditades.clear();
+  guardiesManuals = [];
 }
 
 // ==== Petició a l'API ====
@@ -1836,42 +1821,37 @@ function buildPrintHTML() {
 
   const rawAbsences = (absData.absencies || [])
     .filter(a => String(a['PROFESSOR/A ABSENT'] || '').trim());
-  const classified = rawAbsences.map(classifyAbsence);
-  const valids    = classified.filter(a => a._valid && !a._ignorada);
-  const ignorats  = classified.filter(a => a._ignorada);
-
-  // Grups fora: mirem valids + ignorats (viatge pot estar marcat "no s'ha de cobrir")
-  const grupsFora = recollirGrupsFora([...valids, ...ignorats]);
+  const classified  = rawAbsences.map(classifyAbsence);
+  const valids      = classified.filter(a => a._valid && !a._ignorada);
+  const ignorats    = classified.filter(a => a._ignorada);
+  const grupsFora   = recollirGrupsFora([...valids, ...ignorats]);
   const horariSessions = horData.sessions || [];
-  const guardies = guardData.guardies || {};
+  const guardies    = guardData.guardies || {};
 
-  // Recollim observacions de sortides: registres amb GRUP FORA + Observacions
+  // Observacions de sortides
   const observacionsSortides = [];
   [...valids, ...ignorats].forEach(abs => {
     if (abs._grupsFora.length > 0 && abs._obs) {
-      const text = `${abs._grupsFora.join(', ')}: ${abs._obs}`;
+      const text = abs._grupsFora.join(', ') + ': ' + abs._obs;
       if (!observacionsSortides.includes(text)) observacionsSortides.push(text);
     }
   });
 
-  let html = `<div class="doc-title">${escapeHtml(dia)} ${escapeHtml(dateStr)}</div>`;
+  let html = '<div class="doc-title">' + escapeHtml(dia) + ' ' + escapeHtml(dateStr) + '</div>';
 
   SESSIONS.forEach(s => {
-    const guardiesFranja = guardies[s.franja] || [];
+    const guardiesFranja        = guardies[s.franja] || [];
     const guardiesManualsFranja = guardiesManuals.filter(g => g.franja === s.franja);
 
     if (guardiesFranja.length === 0 && guardiesManualsFranja.length === 0) return;
 
     const teProfessorHorariPDF = (abs) => {
-      const sessionsHorari = horariSessions.filter(s2 => nomsCoincideixen(s2.professor, abs._nom));
-      if (sessionsHorari.length === 0) return true;
-      return sessionsHorari.some(s2 => s2.franja === s.franja);
+      const sh = horariSessions.filter(s2 => nomsCoincideixen(s2.professor, abs._nom));
+      if (sh.length === 0) return true;
+      return sh.some(s2 => s2.franja === s.franja);
     };
 
-    // Absències d'aquesta franja, filtrant:
-    // 1. Que tingui sessió a HORARIS en aquesta franja
-    // 2. Que no estigui esborrada manualment
-    // 3. Que el grup NO sigui fora (si ho és, no apareix com a absent)
+    // Absències filtrant grup fora i esborrades
     const absenciesFranja = valids
       .filter(a => a._sessions.some(sess => sess.num === s.num))
       .filter(a => teProfessorHorariPDF(a))
@@ -1885,32 +1865,27 @@ function buildPrintHTML() {
         return true;
       });
 
-    // Guards absents: apareixen NOMÉS a col. guàrdia amb "(no fa guàrdia)"
+    // Guards absents → col. guàrdia amb "(no fa guàrdia)", fora d'absenciesFranja
     const guardiesAbsents    = guardiesFranja.filter(g => estaAbsent(g, valids));
-    // Absències netes: traiem els que ja estan com a guard absent
     const absenciesFranjaNet = absenciesFranja.filter(a =>
       !guardiesAbsents.some(g => nomsCoincideixen(g, a._nom))
     );
-    const numFiles = Math.max(
-      absenciesFranjaNet.length,
-      guardiesFranja.length + guardiesManualsFranja.length
-    );
 
-    // Array combinat de guards (cuadrant + manuals)
+    // Tots els guards (cuadrant + manuals)
     const totsGuards = [...guardiesFranja, ...guardiesManualsFranja.map(g => g.nom)];
+    const numFiles   = Math.max(absenciesFranjaNet.length, totsGuards.length);
 
-    html += `<div class="session-block">`;
-    html += `<div class="session-label"><span class="session-num">${s.num}a</span>${escapeHtml(s.start)}–${escapeHtml(s.end)}</div>`;
-    html += `<div class="session-content"><table>
-      <thead><tr>
-        <th class="col-absent">Professorat absent</th>
-        <th class="col-group">Grup</th>
-        <th class="col-room">Aula</th>
-        <th class="col-tasks">Tasques</th>
-        <th class="col-guard">Professorat de guàrdia</th>
-        <th class="col-signature">Signatura</th>
-      </tr></thead>
-      <tbody>`;
+    html += '<div class="session-block">';
+    html += '<div class="session-label"><span class="session-num">' + s.num + 'a</span>' + escapeHtml(s.start) + '–' + escapeHtml(s.end) + '</div>';
+    html += '<div class="session-content"><table>';
+    html += '<thead><tr>';
+    html += '<th class="col-absent">Professorat absent</th>';
+    html += '<th class="col-group">Grup</th>';
+    html += '<th class="col-room">Aula</th>';
+    html += '<th class="col-tasks">Tasques</th>';
+    html += '<th class="col-guard">Professorat de guàrdia</th>';
+    html += '<th class="col-signature">Signatura</th>';
+    html += '</tr></thead><tbody>';
 
     for (let i = 0; i < numFiles; i++) {
       const abs     = absenciesFranjaNet[i] || null;
@@ -1924,52 +1899,44 @@ function buildPrintHTML() {
           grup = classe.grup || '';
           aula = classe.aula || '';
         }
-        const tascaResult = obtenirTasca(abs, s.franja);
-        tasques = tascaResult.text || '';
+        tasques = obtenirTasca(abs, s.franja).text || '';
       }
 
       let guardiaCell = '';
       if (guardia) {
         if (estaAbsent(guardia, valids)) {
-          guardiaCell = `${escapeHtml(nomCurt(guardia))} <span style="font-weight:normal;font-style:italic;">(no fa guàrdia)</span>`;
+          guardiaCell = escapeHtml(nomCurt(guardia)) + ' <span style="font-weight:normal;font-style:italic;">(no fa guàrdia)</span>';
         } else {
           guardiaCell = escapeHtml(nomCurt(guardia));
         }
       }
 
-      html += `<tr>
-        <td class="absent-cell">${escapeHtml(nomAbsent)}</td>
-        <td class="group-cell">${escapeHtml(grup)}</td>
-        <td class="room-cell">${escapeHtml(aula)}</td>
-        <td class="tasks-cell">${escapeHtml(tasques)}</td>
-        <td class="guard-cell">${guardiaCell}</td>
-        <td class="signature-cell"></td>
-      </tr>`;
+      html += '<tr>';
+      html += '<td class="absent-cell">'   + escapeHtml(nomAbsent) + '</td>';
+      html += '<td class="group-cell">'    + escapeHtml(grup)      + '</td>';
+      html += '<td class="room-cell">'     + escapeHtml(aula)      + '</td>';
+      html += '<td class="tasks-cell">'    + escapeHtml(tasques)   + '</td>';
+      html += '<td class="guard-cell">'    + guardiaCell            + '</td>';
+      html += '<td class="signature-cell"></td>';
+      html += '</tr>';
     }
 
-    html += `</tbody></table></div></div>`;
+    html += '</tbody></table></div></div>';
   });
 
-  const obsText = observacionsSortides.length > 0
-    ? observacionsSortides.join(' · ')
-    : '';
+  const obsText = observacionsSortides.join(' · ');
 
-  html += `
-    <div class="footer-sections">
-      <div class="footer-box">
-        <div class="footer-box-title">Sortides:</div>
-      </div>
-      <div class="footer-box">
-        <div class="footer-box-title">Alumnat expulsat a l\'aula de convivència:</div>
-      </div>
-      <div class="footer-box">
-        <div class="footer-box-title">Observacions:${obsText ? ` <span style="font-weight:normal;text-transform:none;">${escapeHtml(obsText)}</span>` : ''}</div>
-      </div>
-    </div>
-  `;
+  html += '<div class="footer-sections">';
+  html += '<div class="footer-box"><div class="footer-box-title">Sortides:</div></div>';
+  html += '<div class="footer-box"><div class="footer-box-title">Alumnat expulsat a l’aula de convivència:</div></div>';
+  html += '<div class="footer-box"><div class="footer-box-title">Observacions:' +
+    (obsText ? ' <span style="font-weight:normal;text-transform:none;">' + escapeHtml(obsText) + '</span>' : '') +
+    '</div></div>';
+  html += '</div>';
 
   return html;
 }
+
 function openPreview() {
   if (!lastLoadedData) {
     showError('Cal carregar les dades d\'un dia abans de generar el PDF.');
