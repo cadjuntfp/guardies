@@ -772,29 +772,29 @@
   @media print {
     @page {
       size: A3 landscape;
-      margin: 3mm 3mm;
+      margin: 5mm 6mm;
     }
 
     body > *:not(#printArea) { display: none !important; }
     #printArea {
       display: block !important;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif;
       color: black;
-      font-size: 8.5px;
+      font-size: 9px;
     }
   }
 
   /* Vista prèvia en pantalla del PDF */
   .preview-mode #printArea {
     display: block;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif;
     color: black;
     background: white;
-    padding: 4mm 4mm;
+    padding: 10mm 8mm;
     max-width: 1400px;
     margin: 20px auto;
     box-shadow: 0 2px 20px rgba(0,0,0,0.15);
-    font-size: 8.5px;
+    font-size: 9px;
   }
 
   .preview-mode .container { display: none; }
@@ -836,13 +836,12 @@
 
   /* Estructura de la plantilla impresa */
   #printArea .doc-title {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
     margin-bottom: 4px;
     padding-bottom: 3px;
     border-bottom: 2px solid black;
     letter-spacing: 1px;
-    text-align: center;
   }
 
   #printArea .session-block {
@@ -850,22 +849,21 @@
   }
 
   #printArea .session-label {
-    background: #bbbbbb;
-    color: black;
+    background: #333;
+    color: white;
     padding: 2px 8px;
     font-weight: bold;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Helvetica, sans-serif;
     letter-spacing: 0.3px;
-    font-size: 8.5px;
+    font-size: 9px;
     display: flex;
     align-items: center;
     gap: 10px;
   }
-
   #printArea .session-num {
-    font-size: 7.5px;
-    font-weight: 600;
-    opacity: 0.8;
+    font-size: 8px;
+    font-weight: 500;
+    opacity: 0.75;
     letter-spacing: 0.5px;
     text-transform: uppercase;
   }
@@ -881,17 +879,16 @@
     border: 1px solid black;
     padding: 2px 4px;
     vertical-align: middle;
-    font-size: 8.5px;
+    font-size: 9px;
     overflow: hidden;
   }
 
   #printArea table thead th {
-    background: #e0e0e0;
+    background: #d9d9d9;
     text-transform: uppercase;
-    font-size: 7.5px;
+    font-size: 8px;
     text-align: center;
-    padding: 2px 3px;
-    font-weight: bold;
+    padding: 3px 3px;
   }
 
   #printArea td.absent-cell { font-weight: bold; }
@@ -899,9 +896,13 @@
     font-family: 'Courier New', monospace;
     text-align: center;
   }
+  #printArea td.tasks-cell {
+    font-style: italic;
+    font-size: 10px;
+  }
   #printArea td.guard-cell { font-weight: bold; }
-  #printArea td.signature-cell { }
-  #printArea td.tasks-cell { font-size: 8px; font-style: italic; }
+  #printArea td.signature-cell { width: 55px; }
+  #printArea td.tasks-cell { font-size: 8px; }
 
   #printArea .footer-sections {
     margin-top: 4px;
@@ -918,18 +919,83 @@
 
   #printArea .footer-box-title {
     font-weight: bold;
-    font-size: 7.5px;
+    font-size: 8px;
     text-transform: uppercase;
     margin-bottom: 2px;
   }
 
   /* Amplades de columnes */
-  #printArea .col-absent  { width: 15%; }
-  #printArea .col-group   { width: 8%; }
-  #printArea .col-room    { width: 12%; }
-  #printArea .col-tasks   { width: 26%; }
-  #printArea .col-guard   { width: 15%; }
+  #printArea .col-absent    { width: 15%; }
+  #printArea .col-group     { width: 8%; }
+  #printArea .col-room      { width: 12%; }
+  #printArea .col-tasks     { width: 26%; }
+  #printArea .col-guard     { width: 15%; }
   #printArea .col-signature { width: 10%; }
+
+  /* Franja vertical a l'esquerra */
+  #printArea .session-block {
+    margin-bottom: 2px;
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    border: 1px solid black;
+  }
+
+  #printArea .session-label {
+    background: #bbbbbb;
+    color: black;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    padding: 3px 2px;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid black;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  #printArea .session-num {
+    font-size: 7px;
+    font-weight: 600;
+    opacity: 0.7;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  #printArea .session-content {
+    min-width: 0;
+  }
+
+  /* Boto afegir guardia manual */
+  .btn-add-guardia {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border: 1px dashed var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 8px;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .btn-add-guardia:hover {
+    background: #dbeafe;
+    border-style: solid;
+  }
+
+  .guardia-card.manual {
+    border-color: var(--accent);
+    background: #f0f7ff;
+  }
 </style>
 </head>
 <body>
@@ -1142,6 +1208,7 @@ function makeKey(franja, absentName, guardiaName) {
 function resetUIState() {
   guardiesEsborrades.clear();
   tasquesEditades.clear();
+  guardiesManuals = [];
 }
 
 // ==== Petició a l'API ====
@@ -1499,6 +1566,25 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'taskModal') closeTaskModal();
 });
 
+// ==== Guàrdies manuals ====
+function afegirGuardiaManual(franja) {
+  const nom = prompt('Nom del professor/a de guàrdia:');
+  if (!nom || !nom.trim()) return;
+  guardiesManuals.push({ franja, nom: nom.trim(), tasca: '' });
+  if (lastLoadedData) {
+    const { absData, guardData, horData, date } = lastLoadedData;
+    renderAll(absData, guardData, horData, date);
+  }
+}
+
+function eliminarGuardiaManual(franja, nom) {
+  guardiesManuals = guardiesManuals.filter(g => !(g.franja === franja && g.nom === nom));
+  if (lastLoadedData) {
+    const { absData, guardData, horData, date } = lastLoadedData;
+    renderAll(absData, guardData, horData, date);
+  }
+}
+
 // ==== Render ====
 function formatDate(iso) {
   const [y, m, d] = iso.split('-');
@@ -1582,7 +1668,9 @@ function renderAll(absData, guardData, horData, date) {
   const horariSessions = horData.sessions || [];
 
   // Recollim els grups que estan fora del centre avui
-  const grupsFora = recollirGrupsFora(valids);
+  // Nota: també mirem els ignorats perquè un viatge pot estar marcat com "no s'ha de cobrir"
+  // però igualment hem de saber que el grup és fora
+  const grupsFora = recollirGrupsFora([...valids, ...ignored]);
 
   let html = `
     <div class="results-meta">
@@ -1594,6 +1682,21 @@ function renderAll(absData, guardData, horData, date) {
       ${errors.length > 0 ? `· <span style="color: var(--warn);">${errors.length} amb errors</span>` : ''}
     </div>
   `;
+
+  // ── Incidències A DALT ─────────────────────────────────────
+  if (errors.length > 0) {
+    html += '<div class="warnings-section errors" style="margin-bottom:12px;">';
+    html += `<h3>Files amb errors al Sheet</h3>`;
+    errors.forEach(abs => {
+      html += `
+        <div class="warning-item error">
+          <strong>${escapeHtml(abs._nom || '(sense nom)')}</strong>
+          ${abs._franja ? ` · ${escapeHtml(abs._franja)}` : ''}
+          <div class="reason error">⚠ ${abs._issues.map(escapeHtml).join(' · ')}</div>
+        </div>`;
+    });
+    html += '</div>';
+  }
 
   if (grupsFora.length > 0) {
     html += `<div class="sortida-banner">`;
@@ -1616,20 +1719,18 @@ function renderAll(absData, guardData, horData, date) {
   const guardies = guardData.guardies || {};
 
   SESSIONS.forEach(s => {
-    // Filtrem: un professor absent apareix en una franja NOMÉS si té una sessió
-    // a HORARIS en aquella franja concreta (lectiva, tutoria o guàrdia).
-    // Si no apareix a HORARIS en cap franja, el mostrem sempre (horari no carregat).
     const teProfessorHorari = (abs) => {
       const sessionsHorari = horariSessions.filter(s2 => nomsCoincideixen(s2.professor, abs._nom));
-      if (sessionsHorari.length === 0) return true; // sense horari: mostrem sempre
+      if (sessionsHorari.length === 0) return true;
       return sessionsHorari.some(s2 => s2.franja === s.franja);
     };
     const absenciesFranja = valids.filter(a =>
       a._sessions.some(sess => sess.num === s.num) && teProfessorHorari(a)
     );
     const guardiesFranja = guardies[s.franja] || [];
+    const guardiesManualsFranja = guardiesManuals.filter(g => g.franja === s.franja);
 
-    if (absenciesFranja.length === 0 && guardiesFranja.length === 0) return;
+    if (absenciesFranja.length === 0 && guardiesFranja.length === 0 && guardiesManualsFranja.length === 0) return;
 
     const hasAbsences = absenciesFranja.length > 0;
 
@@ -1654,9 +1755,14 @@ function renderAll(absData, guardData, horData, date) {
         return escapeHtml(g);
       }).join(', ') || '—';
 
+      const extresHTML = guardiesManualsFranja.map(g =>
+        `<span style="color:var(--accent);font-weight:600;">${escapeHtml(g.nom)}</span> <span style="font-size:11px;color:var(--accent);">(afegit)</span>`
+      ).join(', ');
+
       html += `
         <div class="franja-content">
-          Professors de guàrdia: ${guardiesHTML}
+          Professors de guàrdia: ${guardiesHTML}${extresHTML ? ', ' + extresHTML : ''}
+          <br><button class="btn-add-guardia" onclick="afegirGuardiaManual('${escapeJs(s.franja)}')">+ Afegir guàrdia</button>
         </div>
       </div>
       `;
@@ -1738,9 +1844,6 @@ function renderAll(absData, guardData, horData, date) {
         }
       }
 
-      // Nota interna (camp Observacions). Només es mostra si el Sheet ja té
-      // la columna TASQUES separada, perquè en cas contrari Observacions
-      // ja s'està usant com a font de tasques i mostrar-ho seria duplicar.
       if (abs._teColumnaTasques && abs._obs) {
         html += `<div class="nota-interna"><strong>Nota interna</strong>${escapeHtml(abs._obs)}</div>`;
       }
@@ -1748,18 +1851,20 @@ function renderAll(absData, guardData, horData, date) {
       html += `</div>`;
     });
 
+    // Botó afegir guàrdia manual
+    html += `<button class="btn-add-guardia" onclick="afegirGuardiaManual('${escapeJs(s.franja)}')">+ Afegir guàrdia</button>`;
+
     html += `</div></div>
       <div>
         <h4>Professors de guàrdia</h4>
         <ul class="guards-list">`;
 
-    if (guardiesFranja.length === 0) {
+    if (guardiesFranja.length === 0 && guardiesManualsFranja.length === 0) {
       html += `<li class="empty-column">— Cap al cuadrant —</li>`;
     } else {
       guardiesFranja.forEach(g => {
         const absGuardia = estaAbsent(g, valids);
         if (absGuardia) {
-          // Comprovem si tenia GUARDIA assignada en aquesta franja concreta
           const classeGuardia = trobarClasse(horariSessions, g, s.franja);
           const teGuardiaFranja = classeGuardia && classeGuardia.tipus === 'GUARDIA';
           if (teGuardiaFranja) {
@@ -1771,13 +1876,22 @@ function renderAll(absData, guardData, horData, date) {
           html += `<li class="guard-entry">${escapeHtml(g)}</li>`;
         }
       });
+      // Guàrdies afegides manualment
+      guardiesManualsFranja.forEach(g => {
+        html += `<li class="guard-entry" style="color:var(--accent);">
+          ${escapeHtml(g.nom)}
+          <span style="font-size:11px;font-weight:normal;color:var(--accent);">(afegit)</span>
+          <button class="guardia-card-btn remove" style="margin-left:4px;" title="Eliminar" onclick="eliminarGuardiaManual('${escapeJs(s.franja)}', '${escapeJs(g.nom)}')">×</button>
+        </li>`;
+      });
     }
 
     html += `</ul></div></div></div>`;
   });
 
+  // ── Absències ja cobertes (a baix) ────────────────────────
   if (ignored.length > 0) {
-    html += '<div class="warnings-section ignored">';
+    html += '<div class="warnings-section ignored" style="margin-top:16px;">';
     html += `<h3>Absències ja cobertes / amb canvis</h3>`;
     ignored.forEach(abs => {
       html += `
@@ -1785,20 +1899,6 @@ function renderAll(absData, guardData, horData, date) {
           <strong>${escapeHtml(abs._nom)}</strong>
           ${abs._franja ? ` · ${escapeHtml(abs._franja)}` : ''}
           <div class="reason ignored">"${escapeHtml(abs._ignorada)}"</div>
-        </div>`;
-    });
-    html += '</div>';
-  }
-
-  if (errors.length > 0) {
-    html += '<div class="warnings-section errors">';
-    html += `<h3>Files amb errors al Sheet</h3>`;
-    errors.forEach(abs => {
-      html += `
-        <div class="warning-item error">
-          <strong>${escapeHtml(abs._nom || '(sense nom)')}</strong>
-          ${abs._franja ? ` · ${escapeHtml(abs._franja)}` : ''}
-          <div class="reason error">⚠ ${abs._issues.map(escapeHtml).join(' · ')}</div>
         </div>`;
     });
     html += '</div>';
@@ -1841,15 +1941,18 @@ function buildPrintHTML() {
     .filter(a => String(a['PROFESSOR/A ABSENT'] || '').trim());
   const classified = rawAbsences.map(classifyAbsence);
   const valids = classified.filter(a => a._valid && !a._ignorada);
-  const grupsFora = recollirGrupsFora(valids);
+  const ignorats = classified.filter(a => a._ignorada);
+  // Per als grups fora mirem també els ignorats (viatge marcat com "no s'ha de cobrir")
+  const grupsFora = recollirGrupsFora([...valids, ...ignorats]);
   const horariSessions = horData.sessions || [];
   const guardies = guardData.guardies || {};
 
-  // Recollim les observacions de sortides per a la secció final
+  // Observacions de sortides: tots els registres amb GRUP FORA omplert
   const observacionsSortides = [];
-  valids.forEach(abs => {
+  [...valids, ...ignorats].forEach(abs => {
     if (abs._grupsFora.length > 0 && abs._obs) {
-      observacionsSortides.push(`${abs._grupsFora.join(', ')}: ${abs._obs}`);
+      const text = `${abs._grupsFora.join(', ')}: ${abs._obs}`;
+      if (!observacionsSortides.includes(text)) observacionsSortides.push(text);
     }
   });
 
@@ -1857,75 +1960,66 @@ function buildPrintHTML() {
 
   SESSIONS.forEach(s => {
     const guardiesFranja = guardies[s.franja] || [];
+
+    // Saltem només les franges que no existeixen al cuadrant
+    // (ex: 14:05-15:00 si aquell dia no hi ha cap professor assignat)
     if (guardiesFranja.length === 0) return;
 
+    // Filtrem: només absències d'aquesta franja + que el professor tingui sessió a HORARIS
     const teProfessorHorariPDF = (abs) => {
       const sessionsHorari = horariSessions.filter(s2 => nomsCoincideixen(s2.professor, abs._nom));
-      if (sessionsHorari.length === 0) return true;
+      if (sessionsHorari.length === 0) return true; // sense horari: mostrem sempre
       return sessionsHorari.some(s2 => s2.franja === s.franja);
     };
-
-    // Excloem professors el grup dels quals és fora en aquesta franja
     const absenciesFranja = valids
       .filter(a => a._sessions.some(sess => sess.num === s.num))
       .filter(a => teProfessorHorariPDF(a))
-      .filter(a => !guardiesEsborrades.has(makeKey(s.franja, a._nom, '')))
-      .filter(a => {
-        // Si el professor té una classe en aquesta franja i el grup és fora, no apareix
-        const classe = trobarClasse(horariSessions, a._nom, s.franja);
-        if (!classe) return true;
-        if (classe.tipus === 'LECTIVA' || classe.tipus === 'TUTORIA_GRUP') {
-          return !classeGrupFora(classe.grup, s.num, grupsFora);
-        }
-        return true;
-      });
-
-    // Guards absents: només a la columna de guàrdia amb "(no fa guàrdia)"
-    const guardiesAbsents = guardiesFranja.filter(g => estaAbsent(g, valids));
-    // Absències netes: traiem els que ja apareixen com a guard absent
-    const absenciesFranjaNet = absenciesFranja.filter(a =>
-      !guardiesAbsents.some(g => nomsCoincideixen(g, a._nom))
-    );
-    const numFiles = Math.max(absenciesFranjaNet.length, guardiesFranja.length);
+      .filter(a => !guardiesEsborrades.has(makeKey(s.franja, a._nom, '')));
 
     html += `<div class="session-block">`;
     html += `<div class="session-label"><span class="session-num">${s.num}a franja</span>${escapeHtml(s.start)} – ${escapeHtml(s.end)}</div>`;
     html += `<table>
-      <thead><tr>
-        <th class="col-absent">Professorat absent</th>
-        <th class="col-group">Grup</th>
-        <th class="col-room">Aula</th>
-        <th class="col-tasks">Tasques</th>
-        <th class="col-guard">Professorat de guàrdia</th>
-        <th class="col-signature">Signatura</th>
-      </tr></thead>
+      <thead>
+        <tr>
+          <th class="col-absent">Professorat absent</th>
+          <th class="col-group">Grup</th>
+          <th class="col-room">Aula</th>
+          <th class="col-tasks">Tasques</th>
+          <th class="col-guard">Professorat de guàrdia</th>
+          <th class="col-signature">Signatura</th>
+        </tr>
+      </thead>
       <tbody>`;
 
+    // Separem guards disponibles (no absents) dels que tenen guàrdia però estan absents
+    const guardiesAbsents = guardiesFranja.filter(g => estaAbsent(g, valids));
+    const guardiesDisponibles = guardiesFranja.filter(g => !estaAbsent(g, valids));
+
+    // Calculem el nombre màxim de files: el major entre absències a cobrir i guards disponibles
+    const numFiles = Math.max(absenciesFranja.length, guardiesDisponibles.length);
+
     for (let i = 0; i < numFiles; i++) {
-      const abs     = absenciesFranjaNet[i] || null;
-      const guardia = guardiesFranja[i]     || null;
+      const abs = absenciesFranja[i] || null;
+      const guardia = guardiesDisponibles[i] || null;
 
       let nomAbsent = '', grup = '', aula = '', tasques = '';
       if (abs) {
         nomAbsent = nomCurt(abs._nom);
         const classe = trobarClasse(horariSessions, abs._nom, s.franja);
         if (classe && (classe.tipus === 'LECTIVA' || classe.tipus === 'TUTORIA_GRUP')) {
-          grup = classe.grup || '';
-          aula = classe.aula || '';
+          const grupForaDetectat = classeGrupFora(classe.grup, s.num, grupsFora);
+          if (!grupForaDetectat) {
+            grup = classe.grup || '';
+            aula = classe.aula || '';
+          } else {
+            grup = `(${classe.grup} fora)`;
+          }
         }
         const tascaResult = obtenirTasca(abs, s.franja);
         tasques = tascaResult.text || '';
       }
 
-      let guardiaCell = '';
-      if (guardia) {
-        if (estaAbsent(guardia, valids)) {
-          guardiaCell = `${escapeHtml(nomCurt(guardia))} <span style="font-weight:normal;font-style:italic;">(no fa guàrdia)</span>`;
-        } else {
-          guardiaCell = escapeHtml(nomCurt(guardia));
-        }
-      }
-
+      const guardiaCell = guardia ? escapeHtml(nomCurt(guardia)) : '';
       html += `<tr>
         <td class="absent-cell">${escapeHtml(nomAbsent)}</td>
         <td class="group-cell">${escapeHtml(grup)}</td>
@@ -1936,10 +2030,33 @@ function buildPrintHTML() {
       </tr>`;
     }
 
-    html += `</tbody></table></div>`;
+    // Professors de guàrdia absents: apareixen com a absent normal
+    // però a la columna de guàrdia surt el seu nom + "(no fa guàrdia)"
+    guardiesAbsents.forEach(g => {
+      const absGuard = estaAbsent(g, valids);
+      const classeGuard = absGuard ? trobarClasse(horariSessions, g, s.franja) : null;
+      let grupG = '', aulaG = '', tasquesG = '';
+      if (classeGuard && (classeGuard.tipus === 'LECTIVA' || classeGuard.tipus === 'TUTORIA_GRUP')) {
+        grupG = classeGuard.grup || '';
+        aulaG = classeGuard.aula || '';
+      }
+      if (absGuard) {
+        const tascaG = obtenirTasca(absGuard, s.franja);
+        tasquesG = tascaG.text || '';
+      }
+      html += `<tr>
+        <td class="absent-cell">${escapeHtml(nomCurt(g))}</td>
+        <td class="group-cell">${escapeHtml(grupG)}</td>
+        <td class="room-cell">${escapeHtml(aulaG)}</td>
+        <td class="tasks-cell">${escapeHtml(tasquesG)}</td>
+        <td class="guard-cell">${escapeHtml(nomCurt(g))} <span style="font-weight:normal;font-style:italic;">(no fa guàrdia)</span></td>
+        <td class="signature-cell"></td>
+      </tr>`;
+    });
+
+    html += `</tbody></table></div></div>`;
   });
 
-  // Observacions: recollim les sortides amb els seus textos del camp Observacions
   const obsText = observacionsSortides.length > 0
     ? observacionsSortides.join(' · ')
     : '';
