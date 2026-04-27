@@ -337,7 +337,33 @@ async function apiRequest(p){
 
 // Normalització
 function normalitzarNom(n){ return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[_]/g,' ').trim().replace(/\s+/g,' '); }
-function nomsCoincideixen(a,b){ const na=normalitzarNom(a),nb=normalitzarNom(b); if(!na||!nb) return false; return na.includes(nb)||nb.includes(na); }
+
+/* ── CANVI 1 ─────────────────────────────────────────────────────────────
+   Comparació de noms més estricta per evitar col·lisions com "Llorenç Pons":
+   - Si tots dos noms tenen ≥3 paraules (nom + dos llinatges), exigim
+     coincidència paraula a paraula del més curt dins del més llarg en ordre,
+     no només "includes" textual.
+   - Si algun té només 2 paraules, mantenim la lògica actual de tolerància.
+   Així, "Llorenç Pons Garcia" no coincidirà amb "Llorenç Pons Martí" perquè
+   tots dos tenen 3 paraules però difereixen en el segon llinatge.
+   ────────────────────────────────────────────────────────────────────── */
+function paraulesNom(s){ return normalitzarNom(s).split(' ').filter(Boolean); }
+
+function nomsCoincideixen(a,b){
+  const na=normalitzarNom(a), nb=normalitzarNom(b);
+  if(!na||!nb) return false;
+  const pa=paraulesNom(a), pb=paraulesNom(b);
+  // Si tots dos tenen 3 o més paraules: comparació estricta paraula a paraula
+  if(pa.length>=3 && pb.length>=3){
+    if(pa.length!==pb.length) return false;
+    for(let i=0;i<pa.length;i++){
+      if(pa[i]!==pb[i]) return false;
+    }
+    return true;
+  }
+  // Si algun té només 2 paraules, mantenim el comportament tolerant
+  return na.includes(nb)||nb.includes(na);
+}
 function normalitzarGrup(g){ return String(g||'').toLowerCase().replace(/\s+/g,' ').trim(); }
 
 // Parsing
@@ -354,9 +380,21 @@ function sessionsAfectades(f){
   const p=parsearFranja(f); if(!p) return [];
   return SESSIONS.filter(s=>horaAMinuts(s.start)>=p.inici&&horaAMinuts(s.end)<=p.final);
 }
-function observacioIgnora(obs){
-  if(!obs) return null;
-  for(const p of PATRONS_IGNORAR) if(p.test(obs)) return obs;
+
+/* ── CANVI 2 ─────────────────────────────────────────────────────────────
+   Ara busquem els patrons d'absència coberta tant a Observacions com a la
+   columna TASQUES. Si la frase apareix a qualsevol dels dos camps,
+   l'absència s'ignora (no apareix al render web ni al PDF).
+   ────────────────────────────────────────────────────────────────────── */
+function observacioIgnora(textos){
+  // Accepta string o array de strings
+  const llista = Array.isArray(textos) ? textos : [textos];
+  for(const txt of llista){
+    if(!txt) continue;
+    for(const p of PATRONS_IGNORAR){
+      if(p.test(txt)) return txt;
+    }
+  }
   return null;
 }
 
@@ -419,7 +457,9 @@ function classifyAbsence(abs){
     _causa:String(abs['CAUSA ABSÈNCIA']||'').trim().replace(/^\d+\.\s*/,''),
     _obs:obs,_tasquesFont:tqFnt,_teColumnaTasques:!!tqCol,
     _grupsFora:grupsFora,_sessions:sessions,
-    _issues:issues,_valid:issues.length===0,_ignorada:observacioIgnora(obs)
+    _issues:issues,_valid:issues.length===0,
+    // Mirem patrons tant a Observacions com a la columna TASQUES
+    _ignorada:observacioIgnora([obs,tqCol])
   };
 }
 
