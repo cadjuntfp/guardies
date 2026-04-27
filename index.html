@@ -491,14 +491,13 @@ function classeGrupFora(gc,ns,gf){
   }
   return null;
 }
+/* ── CANVI 3 ─────────────────────────────────────────────────────────────
+   Mostrem el nom complet amb tots els llinatges, tant al PDF com al render
+   web. Es manté la funció nomCurt() per compatibilitat amb les crides
+   existents, però ara retorna el nom íntegre tal com ve del Sheet.
+   ────────────────────────────────────────────────────────────────────── */
 function nomCurt(n){
-  if(!n) return '';
-  const p=n.trim().split(/\s+/);
-  if(p.length<=2) return n;
-  const p1=['Miquel','Joan','Maria','José','María','Anna','Josep','Juan','Ana','Jose'];
-  const p2=['Àngel','Pere','Antoni','Maria','María','Carles','P','Lluís','Ma','Pau'];
-  if(p1.includes(p[0])&&p2.includes(p[1])) return `${p[0]} ${p[1]} ${p[2]}`;
-  return `${p[0]} ${p[1]}`;
+  return n ? n.trim() : '';
 }
 
 // Càrrega
