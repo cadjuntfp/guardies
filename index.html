@@ -27,6 +27,11 @@ h1{font-size:22px;font-weight:600;letter-spacing:-0.01em;margin-bottom:4px}
 .help-text{font-size:12px;color:var(--text-muted);margin-top:4px}
 .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
 .toolbar input[type="date"]{padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:14px;background:var(--surface)}
+.sortides-field{margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.sortides-field label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.sortides-field .sortides-hint{font-weight:400;color:var(--text-muted);font-size:12px;margin-left:6px}
+.sortides-field textarea{width:100%;min-height:60px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:14px;line-height:1.5;resize:vertical;background:var(--bg)}
+.sortides-field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:var(--surface)}
 .btn{font-family:inherit;font-size:14px;padding:8px 14px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:6px;cursor:pointer;transition:all 0.15s}
 .btn:hover:not(:disabled){background:var(--bg);border-color:var(--text-soft)}
 .btn:disabled{opacity:0.5;cursor:not-allowed}
@@ -208,6 +213,11 @@ h1{font-size:22px;font-weight:600;letter-spacing:-0.01em;margin-bottom:4px}
       <button class="btn" id="pdfBtn" onclick="openPreview()" disabled style="margin-left:auto">Generar PDF</button>
       <button class="btn btn-icon" onclick="showConfigPanel()" title="Configuració">⚙️</button>
     </div>
+    <div class="sortides-field">
+      <label for="sortidesTextarea">Sortides <span class="sortides-hint">(text que apareixerà al peu del PDF)</span></label>
+      <textarea id="sortidesTextarea" placeholder="Ex: 1r ESO A i B — Castell de Sant Felip (8:00 a 14:00). Acompanyen: …"
+                oninput="sortidesText=this.value"></textarea>
+    </div>
   </div>
 
   <div class="modal-backdrop" id="configModal">
@@ -280,9 +290,17 @@ let lastLoadedData    = null;
 let guardiesEsborrades = new Set();
 let tasquesEditades    = new Map();
 let guardiesManuals    = [];
+let sortidesText       = '';
 let editingContext     = null;
 
-function resetUIState(){ guardiesEsborrades.clear(); tasquesEditades.clear(); guardiesManuals=[]; }
+function resetUIState(){
+  guardiesEsborrades.clear();
+  tasquesEditades.clear();
+  guardiesManuals=[];
+  sortidesText='';
+  const ta=document.getElementById('sortidesTextarea');
+  if(ta) ta.value='';
+}
 function makeKey(f,n){ return `${f}|${n}`; }
 
 // Config
@@ -750,7 +768,8 @@ function buildPrintHTML(){
 
   html+=`</div>`;
   const obsText=obsSortides.join(' \u00b7 ');
-  html+=`<div class="footer-sections"><div class="footer-box"><div class="footer-box-title">Sortides:</div></div><div class="footer-box"><div class="footer-box-title">Alumnat expulsat a l\u2019aula de convi\u0076\u00e8ncia:</div></div><div class="footer-box"><div class="footer-box-title">Observacions:${obsText?` <span style="font-weight:normal;text-transform:none">${escapeHtml(obsText)}</span>`:''}</div></div></div>`;
+  const sortidesPDF = (sortidesText||'').trim();
+  html+=`<div class="footer-sections"><div class="footer-box"><div class="footer-box-title">Sortides:${sortidesPDF?` <span style="font-weight:normal;text-transform:none">${escapeHtml(sortidesPDF)}</span>`:''}</div></div><div class="footer-box"><div class="footer-box-title">Alumnat expulsat a l\u2019aula de convi\u0076\u00e8ncia:</div></div><div class="footer-box"><div class="footer-box-title">Observacions:${obsText?` <span style="font-weight:normal;text-transform:none">${escapeHtml(obsText)}</span>`:''}</div></div></div>`;
   return html;
 }
 
